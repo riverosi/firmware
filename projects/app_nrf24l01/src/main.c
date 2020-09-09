@@ -64,8 +64,8 @@
 /*==================[Definitions]=============================================*/
 /*
  * Uncomment the select mode*/
-//#define asRX 1
-//#define asTX 1
+#define asRX 1
+#define asTX 1
 
 void GPIO4_IRQHandler(void){
 	NVIC_DisableIRQ( PIN_INT4_IRQn);
@@ -123,6 +123,8 @@ int main(void)
 
 	Nrf24PrimaryDevISRConfig(&TX);
 #endif
+
+
 
 #if asRX
 	nrf24l01_t RX;
