@@ -254,8 +254,8 @@ void Nrf24RegisterInit(nrf24l01_t *nrf24) {
 	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_AW, NRF24_AW_5BYTES);
 	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_RETR,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x03); //ARD(Auto Retransmit Delay)|ARC(Auto Retransmit Count) 250 us | 3 retransmitions
-	Nrf24RegisterWrite8(nrf24, NRF24_RF_CH, 0x02); //Set channel in 0x02
-	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); //air data rate 2Mbps | max power output| setup LNA gain
+	Nrf24RegisterWrite8(nrf24, NRF24_RF_CH, 0x02); // Set channel in 0x02
+	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); // Air data rate 2Mbps | max power output| setup LNA gain
 	Nrf24RegisterWrite8(nrf24, NRF24_STATUS, 0x70); // Clears interrupts RX_DR, TX_DS and MAX_RT
 	//Nrf24RegisterWrite8(nrf24,NRF24_CD, 0x00); Not necessary. Read only register
 	Nrf24RegisterWriteMulti(nrf24, NRF24_RX_ADDR_P0, ucRxAddr1, 5); // Writes default RX address in P0.

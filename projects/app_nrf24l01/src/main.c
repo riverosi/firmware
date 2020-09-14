@@ -157,7 +157,6 @@ int main(void)
 
     //Variables
    
-	    
 	while(TRUE){
 			__WFI ();
 		};

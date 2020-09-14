@@ -23,6 +23,7 @@ extern "C" {
 #define MPU9250_D2R                   3.14159265359f/180.0f
 
 // MPU9250 registers
+#define MPU9250_INT_STATUS			  0x3A
 #define MPU9250_ACCEL_OUT             0x3B
 #define MPU9250_GYRO_OUT              0x43
 #define MPU9250_TEMP_OUT              0x41
