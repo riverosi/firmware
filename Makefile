@@ -262,6 +262,10 @@ info:
 	@echo INCLUDES: $(INCLUDES)
 	@echo PROJECT_SRC_FOLDERS: $(PROJECT_SRC_FOLDERS)
 
+size: $(TARGET)
+	@echo SIZEOF $(notdir $<)...
+	$(Q)$(SIZE) $<
+
 .DEFAULT: all
 
 .PHONY: all doc clean clean_all openocd download erase info ctags generate

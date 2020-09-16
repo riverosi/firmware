@@ -108,7 +108,6 @@ void IntToString(int16_t value, uint8_t* pBuf, uint32_t len, uint32_t base);
  * C++ version 0.4 char* style "itoa":
  * Written by Lukás Chmela
  * Released under GPLv3.
-
  */
 char* itoa(int value, char* result, int base);
 

@@ -39,84 +39,82 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
 /*==================[inclusions]=============================================*/
-#include "../inc/app_9250.h"       /* <= own header */
+#include "../../app_9250_M0/inc/app_9250.h"       /* <= own header */
+
 #include "systemclock.h"
+#include "chip.h"
+#include "cr_start_m0.h"
+#include <stdint.h>
 
 
 /*==================[macros and definitions]=================================*/
-#define RISING 1
-#define FALLING 0
-#define BUFFER_SIZE 14 /*UART BUFFER DATA*/
+#define BUFFER_SIZE 21 /*UART BUFFER DATA*/
 /*==================[internal data definition]===============================*/
-uint16_t counter_systick=0;
-uint8_t buffer_trigger[BUFFER_SIZE];
-
+static volatile uint32_t counter_systick = 0;
 /*==================[internal functions declaration]=========================*/
 
-
+/**
+ * @brief convert float in array of bytes
+ * @param bytes_temp
+ * @param float_variable
+ */
+void float2Bytes(uint8_t *bytes_temp , float float_variable){
+  memcpy(bytes_temp, (uint8_t*) (&float_variable), 4);
+};
 /*==================[external data definition]===============================*/
 
 /*==================[external functions definition]==========================*/
-void MPU1Init(void)
-{
-	StopWatch_DelayMs(100);
-	MPU9250InitI2C(400000,MPU9250_ADDRESS_AD0L);
-	/*Si hay error al iniciar imu enciende led RGD rojo, sino led verde*/
-	if((MPU9250Begin() & MPU9250SetAccelRange(ACCEL_RANGE_2G) &	MPU9250SetGyroRange(GYRO_RANGE_250DPS)) == TRUE){
-		GPIOOn(LED3);
-	}
-	else{
-		GPIOOn(LED2);
-	}
-};
-//---------------------------------------------------------------------------------------------------
 
-//---------------------------------------------------------------------------------------------------
-/*GPIOGP0 Interruption Handler*/
-void Interruption_Trigger(void){
+/* void Interruption_Trigger(void){
 		GPIOToggle(LEDRGB_B);
-		uint8_t i=0;
-		/*Send zeros for trigger signal*/
-		while(i<BUFFER_SIZE){
-			Chip_UART_SendByte(USB_UART, buffer_trigger[i]);
-			i++;
-		};
-		Chip_UART_SendByte(USB_UART, '\n');
+		/Send zeros for trigger signal/
+		uint8_t buffer_trigger[BUFFER_SIZE+1],var;
+		for (var = 0; var < BUFFER_SIZE; ++var) {
+			buffer_trigger[var] = 0;
+		}
+		buffer_trigger[BUFFER_SIZE] = '\n';
+		Chip_UART_SendBlocking(USB_UART, buffer_trigger, sizeof(buffer_trigger));
 };
-//---------------------------------------------------------------------------------------------------
+*/
 /*Sistick Handler*/
 void SysTick_Handler(void){
-		counter_systick++;
-		if (counter_systick==50){
-			/*
-			 * Routine*/
-			GPIOToggle(LEDRGB_G);
-			uint8_t buffer_data_out[14];
-			uint8_t buf[2];
-			buf[0] = 0x3B;
-			I2CRead( MPU9250_ADDRESS_AD0L , buf , 1 , buffer_data_out , 14);
-			Chip_UART_SendBlocking(USB_UART, buffer_data_out, sizeof(buffer_data_out));
-			Chip_UART_SendBlocking(USB_UART, "\n" , 1);
-			counter_systick=0;
-		}
+	counter_systick++;
+	if ( counter_systick == 500 ){
+		Led_Toggle(RGB_R_LED);
+		mpu9250Read();
+		uint8_t buffer_data_out[BUFFER_SIZE+1];
+		buffer_data_out[BUFFER_SIZE] = '\n';
+		mpu9250GetDataBuffer(buffer_data_out);
+		Chip_UART_SendBlocking(USB_UART, buffer_data_out, sizeof(buffer_data_out));
+		/*Counter Systick Reset*/
+		counter_systick = 0;
 	}
+}
 //---------------------------------------------------------------------------------------------------
 int main(void)
 {
 	SystemClockInit();
+	SysTick_Config(SystemCoreClock/1000);//llamada systick cada 1ms
+	cr_start_m0(SLAVE_M0APP, (uint8_t *)0x1B000000);
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(460800);
-	LedsInit();
-	MPU1Init();
-	GPIOInit(TEC_1, GPIO_INPUT);
-	GPIOActivInt( GPIOGP0 , TEC_1 , Interruption_Trigger , FALLING);
-	SysTick_Config(SystemCoreClock/1000);/*llamada systick cada 1ms*/
+	Init_Leds();
+	MPU9250_address_t addr = MPU9250_ADDRESS_0; // If MPU9250 AD0 pin is connected to GND
+	int8_t status;
+	status = mpu9250Init( addr );
+	if( status == 1){
+		Led_On(GREEN_LED);
+	}
+	else{
+		Led_On(RED_LED);
+	}
+
 	while(TRUE){
 		__WFI ();
 	};
+
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
 	   por ningun S.O. */
 	return 0;

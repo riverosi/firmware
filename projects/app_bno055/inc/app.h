@@ -1,4 +1,5 @@
-/* Copyright 2018,
+/**
+ * Copyright 2018,
  * Juan Manuel Reta
  * jmreta@ingenieria.uner.edu.ar
  * Facultad de Ingenieria

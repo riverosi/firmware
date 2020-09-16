@@ -2,7 +2,7 @@
  * sapi_imu_mpu9250.c
  *
  *  Created on: 14 ago. 2020
- *      Author: river
+ *      Author: riveros ignacio
  */
 
 /*==================[inclusions]=============================================*/

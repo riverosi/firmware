@@ -62,9 +62,8 @@
 #include "systemclock.h"
 #include "chip.h"
 /*==================[Definitions]=============================================*/
-/*
- * Uncomment the select mode*/
-#define asRX 1
+/* 1 to activate */
+#define asRX 0
 #define asTX 1
 
 void GPIO4_IRQHandler(void){

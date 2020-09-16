@@ -235,6 +235,11 @@ typedef struct {
 /*==================[external functions declaration]=========================*/
 
 // Initialize MPU9250 (Only I2C)
+/**
+ *
+ * @param address
+ * @return
+ */
 int mpu9250Init( MPU9250_address_t address );
 
 // Read sensor registers and store data at control structure
