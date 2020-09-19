@@ -279,6 +279,8 @@ float mpu9250GetTemperature_C( void );
 // Returns the raw data buffer
 void mpu9250GetDataBuffer( uint8_t* data );
 
+//check if new data in buffer
+uint8_t mpu9250DataReady( void );
 
 /*==================[c++]====================================================*/
 #ifdef __cplusplus

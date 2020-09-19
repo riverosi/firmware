@@ -433,13 +433,13 @@ int mpu9250Init( MPU9250_address_t address )
 	if (mpu9250WriteRegister(MPU9250_PWR_MGMNT_2, MPU9250_SEN_ENABLE) < 0) {
 		return -6;
 	}
-	// setting accel range to 16G as default
+	// setting accel range to 2G as default
 	if (mpu9250WriteRegister(MPU9250_ACCEL_CONFIG, MPU9250_ACCEL_FS_SEL_2G) < 0) {
 		return -7;
 	}
-	control._accelScale = MPU9250_G * 2.0f / 32767.5f; // setting the accel scale to 16G
+	control._accelScale = MPU9250_G * 2.0f / 32767.5f; // setting the accel scale to 2G
 	control._accelRange = MPU9250_ACCEL_RANGE_2G;
-	// setting the gyro range to 2000DPS as default
+	// setting the gyro range to 250DPS as default
 	if (mpu9250WriteRegister(MPU9250_GYRO_CONFIG, MPU9250_GYRO_FS_SEL_250DPS) < 0) {
 		return -8;
 	}
@@ -455,8 +455,8 @@ int mpu9250Init( MPU9250_address_t address )
 		return -10;
 	}
 	control._bandwidth = MPU9250_DLPF_BANDWIDTH_184HZ;
-	// setting the sample rate divider to 0 as default
-	if (mpu9250WriteRegister(MPU9250_SMPDIV, 0x00) < 0) {
+	// setting the sample rate divider to 0x04 as default -> Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
+	if (mpu9250WriteRegister(MPU9250_SMPDIV, 0x04) < 0) {
 		return -11;
 	}
 	control._srd = 0;
@@ -505,6 +505,8 @@ int mpu9250Init( MPU9250_address_t address )
 	if (mpu9250WriteRegister(MPU9250_PWR_MGMNT_1, MPU9250_CLOCK_SEL_PLL) < 0) {
 		return -19;
 	}
+	//Set sample rate in 200 Hz
+	mpu9250SetSrd(4);
 	// instruct the MPU9250 to get 7 bytes of data from the AK8963 at the sample rate
 	mpu9250ReadAK8963Registers(MPU9250_AK8963_HXL, 7);
 	// estimate gyro bias
@@ -613,5 +615,13 @@ float mpu9250GetTemperature_C( void )
 void mpu9250GetDataBuffer(uint8_t* data){
 	memcpy(data, control._buffer , 21);
 }
-
-
+//check if new data in buffer
+uint8_t mpu9250DataReady( void ){
+	mpu9250ReadRegisters( MPU9250_INT_STATUS,1 );
+	if ( control._buffer[0] & 0x01) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}

@@ -40,11 +40,9 @@
  *
  */
 /*==================[inclusions]=============================================*/
-#include "../../app_9250_M0/inc/app_9250.h"       /* <= own header */
-
+#include "../../app_9250_M4/inc/app_9250.h"       /* <= own header */
 #include "systemclock.h"
 #include "chip.h"
-#include "cr_start_m0.h"
 #include <stdint.h>
 
 
@@ -80,7 +78,8 @@ void float2Bytes(uint8_t *bytes_temp , float float_variable){
 /*Sistick Handler*/
 void SysTick_Handler(void){
 	counter_systick++;
-	if ( counter_systick == 500 ){
+	/* Routine every 10 ms*/
+	if ( counter_systick == 10 ){
 		Led_Toggle(RGB_R_LED);
 		mpu9250Read();
 		uint8_t buffer_data_out[BUFFER_SIZE+1];
@@ -92,11 +91,14 @@ void SysTick_Handler(void){
 	}
 }
 //---------------------------------------------------------------------------------------------------
+/**
+ * App que envia por el serial (460800 baudrate) las lecturas de datos del mpu9250 (count data)
+ * para ver la información usar codigo en python
+ * @return
+ */
 int main(void)
 {
 	SystemClockInit();
-	SysTick_Config(SystemCoreClock/1000);//llamada systick cada 1ms
-	cr_start_m0(SLAVE_M0APP, (uint8_t *)0x1B000000);
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(460800);
@@ -110,6 +112,8 @@ int main(void)
 	else{
 		Led_On(RED_LED);
 	}
+
+	SysTick_Config(SystemCoreClock/1000);//llamada systick cada 1ms
 
 	while(TRUE){
 		__WFI ();
