@@ -54,7 +54,7 @@
 
 /*==================[inclusions]=============================================*/
 #include "led.h"
-#include "gpio_hal.h"
+#include "gpio.h"
 #include "sapi_imu_mpu9250.h"
 #include "fpu_init.h"
 #include "UART.h"

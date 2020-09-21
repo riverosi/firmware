@@ -37,7 +37,8 @@
 /*==================[inclusions]=============================================*/
 
 #include "spi_generic_device.h"
-#include "gpio_hal.h"
+#include "gpio.h"
+
 
 /*==================[macros and definitions]=================================*/
 
@@ -234,9 +235,9 @@ typedef enum{
 typedef struct{
 	spiDevice_t spi; 		/**< SPI device configuration structure  s*/
 	nrf24l01Mode_t mode;	/**< Transmitter (PTX) or receiver (PRX) */
-	gpioPin_t cs;			/**< Chip Select 	*/
-	gpioPin_t ce;			/**< Chip Enable 	*/
-	gpioPin_t irq;			/**< IRQ pin 		*/
+	gpio_t cs;			/**< Chip Select 	*/
+	gpio_t ce;			/**< Chip Enable 	*/
+	gpio_t irq;			/**< IRQ pin 		*/
 	uint8_t pin_int_num;	/**< Pin interrupt number */
 	bool en_ack_pay;		/**< Enable ACK payload */
 }nrf24l01_t;

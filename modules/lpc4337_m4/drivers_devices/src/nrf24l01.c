@@ -80,8 +80,8 @@ static void Nrf24SpiWriteMultiByte(nrf24l01_t *nrf24, uint8_t *buffer, uint32_t 
 }
 
 static void Nrf24CeLow(nrf24l01_t *nrf24) {
-	GpioWrite(&nrf24->ce, GPIO_LOW);
-
+	//GpioWrite(&nrf24->ce, GPIO_LOW);
+	GPIOState(nrf24->ce, 0 );
 	if (internal_states[nrf24->spi.id] & INTERNAL_STATE_POWER_UP) {
 		internal_states[nrf24->spi.id] |= INTERNAL_STATE_STAND_BY;
 	} else {
@@ -90,18 +90,22 @@ static void Nrf24CeLow(nrf24l01_t *nrf24) {
 }
 
 static void Nrf24CeHigh(nrf24l01_t *nrf24) {
-	GpioWrite(&nrf24->ce, GPIO_HIGH);
+	//GpioWrite(&nrf24->ce, GPIO_HIGH);
+	GPIOState(nrf24->ce, 1 );
+
 	if (internal_states[nrf24->spi.id] & INTERNAL_STATE_POWER_UP) {
 		internal_states[nrf24->spi.id] &= (~INTERNAL_STATE_STAND_BY);
 	}
 }
 
 static void Nrf24CsLow(nrf24l01_t *nrf24) {
-	GpioWrite(&nrf24->cs, GPIO_LOW);
+	//GpioWrite(&nrf24->cs, GPIO_LOW);
+	GPIOState(nrf24->cs , 0);
 }
 
 static void Nrf24CsHigh(nrf24l01_t *nrf24) {
-	GpioWrite(&nrf24->cs, GPIO_HIGH);
+	//GpioWrite(&nrf24->cs, GPIO_HIGH);
+	GPIOState(nrf24->cs , 1);
 }
 
 /*==================[external functions definition]=========================*/
@@ -111,13 +115,19 @@ static void Nrf24CsHigh(nrf24l01_t *nrf24) {
 void Nrf24Init(nrf24l01_t *nrf24) {
 	SpiDevInit(&nrf24->spi);
 
-	nrf24->cs.dir = GPIO_OUT;
-	nrf24->cs.init_st = GPIO_HIGH; //CS is active LOW
-	GpioConfig(&nrf24->cs);
+	//nrf24->cs = GPIO_OUT;
+	//nrf24->cs.init_st = GPIO_HIGH; //CS is active LOW
+	//GpioConfig(&nrf24->cs);
+	GPIOInit( nrf24->cs , GPIO_OUTPUT);
+	GPIOOn( nrf24->cs );
 
-	nrf24->ce.dir = GPIO_OUT;
-	nrf24->ce.init_st = GPIO_LOW; //CE is active HIGH
-	GpioConfig(&nrf24->ce);
+
+	//nrf24->ce.dir = GPIO_OUT;
+	//nrf24->ce.init_st = GPIO_LOW; //CE is active HIGH
+	//GpioConfig(&nrf24->ce);
+	GPIOInit( nrf24->cs , GPIO_OUTPUT);
+	GPIOOff( nrf24->ce );
+
 
 	Nrf24RegisterInit(nrf24);
 
@@ -735,16 +745,21 @@ void Nrf24SendRcvCommand(nrf24l01_t *nrf24, uint8_t command, uint8_t *data, uint
 
 void Nrf24PrimaryDevISRConfig(nrf24l01_t *nrf24){
 	primary_dev=nrf24;
-	nrf24->irq.dir=GPIO_IN_PULLUP;
-	GpioConfig(&nrf24->irq);
-	GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24PrimaryDevISR);
+	//nrf24->irq.dir=GPIO_IN_PULLUP;
+	//GpioConfig(&nrf24->irq);
+	//GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24PrimaryDevISR);
+	GPIOInit( nrf24->irq , GPIO_INPUT);
+	GPIOActivInt( GPIOGP0 , nrf24->irq , Nrf24PrimaryDevISR , 0);
+
 }
 
 void Nrf24SecondaryDevISRConfig(nrf24l01_t *nrf24){
 	secondary_dev=nrf24;
-	nrf24->irq.dir=GPIO_IN_PULLUP;
-	GpioConfig(&nrf24->irq);
-	GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24SecondaryDevISR);
+	//nrf24->irq.dir=GPIO_IN_PULLUP;
+	//GpioConfig(&nrf24->irq);
+	//GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24SecondaryDevISR);
+	GPIOInit( nrf24->irq , GPIO_INPUT);
+	GPIOActivInt( GPIOGP1 , nrf24->irq , Nrf24SecondaryDevISR , 0);
 }
 
 void Nrf24PrimaryDevISR(){

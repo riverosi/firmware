@@ -61,7 +61,7 @@
 /*==================[inclusions]=============================================*/
 #include "led.h"
 #include "switch.h"
-#include "gpio_hal.h"
+#include "gpio.h"
 #include "fpu_init.h"
 #include "UART.h"
 #include "stopwatch.h"

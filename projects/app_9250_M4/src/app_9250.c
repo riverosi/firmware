@@ -47,7 +47,7 @@
 
 
 /*==================[macros and definitions]=================================*/
-#define BUFFER_SIZE 21 /*UART BUFFER DATA*/
+#define BUFFER_SIZE 22 /*UART BUFFER DATA*/
 /*==================[internal data definition]===============================*/
 static volatile uint32_t counter_systick = 0;
 /*==================[internal functions declaration]=========================*/
@@ -64,26 +64,26 @@ void float2Bytes(uint8_t *bytes_temp , float float_variable){
 
 /*==================[external functions definition]==========================*/
 
-/* void Interruption_Trigger(void){
+void Interruption_Trigger(void){
 		GPIOToggle(LEDRGB_B);
-		/Send zeros for trigger signal/
-		uint8_t buffer_trigger[BUFFER_SIZE+1],var;
+		/*Send zeros for trigger signal*/
+		uint8_t buffer_trigger[BUFFER_SIZE],var;
 		for (var = 0; var < BUFFER_SIZE; ++var) {
 			buffer_trigger[var] = 0;
 		}
-		buffer_trigger[BUFFER_SIZE] = '\n';
+		buffer_trigger[BUFFER_SIZE - 1] = '\n';
 		Chip_UART_SendBlocking(USB_UART, buffer_trigger, sizeof(buffer_trigger));
 };
-*/
+
 /*Sistick Handler*/
 void SysTick_Handler(void){
 	counter_systick++;
 	/* Routine every 10 ms*/
-	if ( counter_systick == 10 ){
-		Led_Toggle(RGB_R_LED);
+	if ( counter_systick == 100 ){
+		GPIOToggle(LEDRGB_R);
 		mpu9250Read();
-		uint8_t buffer_data_out[BUFFER_SIZE+1];
-		buffer_data_out[BUFFER_SIZE] = '\n';
+		uint8_t buffer_data_out[BUFFER_SIZE];
+		buffer_data_out[BUFFER_SIZE - 1] = '\n';
 		mpu9250GetDataBuffer(buffer_data_out);
 		Chip_UART_SendBlocking(USB_UART, buffer_data_out, sizeof(buffer_data_out));
 		/*Counter Systick Reset*/
@@ -103,14 +103,18 @@ int main(void)
 	StopWatch_Init();
 	Init_Uart_Ftdi(460800);
 	Init_Leds();
+
+	GPIOInit( TEC_1 , GPIO_INPUT );
+	GPIOActivInt( GPIOGP0 , TEC_1 , Interruption_Trigger , 0 );
+
 	MPU9250_address_t addr = MPU9250_ADDRESS_0; // If MPU9250 AD0 pin is connected to GND
 	int8_t status;
 	status = mpu9250Init( addr );
 	if( status == 1){
-		Led_On(GREEN_LED);
+		GPIOOn(LED3);/* On green led */
 	}
 	else{
-		Led_On(RED_LED);
+		GPIOOn(LED2);/* On red led */
 	}
 
 	SysTick_Config(SystemCoreClock/1000);//llamada systick cada 1ms

@@ -66,19 +66,6 @@
 #define asRX 0
 #define asTX 1
 
-void GPIO4_IRQHandler(void){
-	NVIC_DisableIRQ( PIN_INT4_IRQn);
-	Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT,PININTCH(4));
-	GpioInterrupt(4);
-	NVIC_EnableIRQ( PIN_INT4_IRQn);
-}
-
-void GPIO5_IRQHandler(void){
-	NVIC_DisableIRQ( PIN_INT5_IRQn);
-	Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT,PININTCH(5));
-	GpioInterrupt(5);
-	NVIC_EnableIRQ( PIN_INT5_IRQn);
-}
 /*==================[SystickHandler]=============================================*/
 void SysTick_Handler(void){
 	static uint32_t cnt = 0;
@@ -108,12 +95,11 @@ int main(void)
 #if asTX
 	nrf24l01_t TX;
 	TX.spi.cfg=nrf24l01_spi_default_cfg;
-	TX.cs.n=GPIO_0;
-	TX.ce.n=GPIO_1;
-	TX.irq.n=GPIO_4;
+	TX.cs = GPIO1;
+	TX.ce = GPIO3;
+	TX.irq = GPIO5;
 	TX.mode=PTX;
 	TX.en_ack_pay=TRUE;
-	TX.pin_int_num=4;
 
 	Nrf24Init(&TX);
 
