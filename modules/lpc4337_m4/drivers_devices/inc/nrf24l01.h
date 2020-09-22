@@ -268,7 +268,7 @@ extern uint8_t rcv_fr_PTX[]; 	/**< 32 bytes buffer received from primary transmi
  * @param[in] nrf24 NRF24 device configuration pointer
  *
  */
-void Nrf24Init(nrf24l01_t *nrf24);
+uint8_t Nrf24Init(nrf24l01_t *nrf24);
 
 /**
  * @brief Sends application data

@@ -72,7 +72,7 @@ void SysTick_Handler(void){
 	cnt = cnt % 500;
 
 	if (cnt == 0){
-		Led_Toggle(RGB_R_LED);
+		GPIOToggle(LEDRGB_G);
 #if asTX
 		Nrf24TxTick();
 #endif
@@ -94,17 +94,27 @@ int main(void)
 /*	Select mode of NRF	*/
 #if asTX
 	nrf24l01_t TX;
-	TX.spi.cfg=nrf24l01_spi_default_cfg;
+	TX.spi.cfg = nrf24l01_spi_default_cfg;
 	TX.cs = GPIO1;
 	TX.ce = GPIO3;
 	TX.irq = GPIO5;
-	TX.mode=PTX;
+	TX.mode = PTX;
 	TX.en_ack_pay=TRUE;
 
-	Nrf24Init(&TX);
+	if ( Nrf24Init(&TX) == 0) {
+		GPIOOn(LED3);
+	}
+	else {
+		GPIOOn(LED2);
+	}
 
 	/* Enable ack payload */
 	Nrf24EnableFeatureAckPL(&TX);
+
+	uint8_t ucRxAddr[5] = { 0xE7, 0xE7, 0xE7, 0xE7, 0xE7 };//Set RX Address
+	uint8_t ucTxAddr[5] = { 0xE7, 0xE7, 0xE7, 0xE7, 0xE7 };//Set TX Address
+	Nrf24SetRxAddress(&TX , NRF24_PIPE0 ,  ucRxAddr );
+	Nrf24SetTXAddress(&TX , ucTxAddr );
 
 	Nrf24PrimaryDevISRConfig(&TX);
 #endif

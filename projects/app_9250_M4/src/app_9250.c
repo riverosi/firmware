@@ -44,26 +44,41 @@
 #include "systemclock.h"
 #include "chip.h"
 #include <stdint.h>
-
-
 /*==================[macros and definitions]=================================*/
 #define BUFFER_SIZE 22 /*UART BUFFER DATA*/
 /*==================[internal data definition]===============================*/
-static volatile uint32_t counter_systick = 0;
+
 /*==================[internal functions declaration]=========================*/
 
 /**
- * @brief convert float in array of bytes
+ * @brief Convert float data in uint8_t array
  * @param bytes_temp
  * @param float_variable
  */
 void float2Bytes(uint8_t *bytes_temp , float float_variable){
   memcpy(bytes_temp, (uint8_t*) (&float_variable), 4);
 };
+
+
 /*==================[external data definition]===============================*/
 
 /*==================[external functions definition]==========================*/
+/**
+ * @brief Init Hardware
+ */
+void Hardware_Init(void){
+	SystemClockInit();
+	fpuInit(); // Init FPU
+	StopWatch_Init(); // Init Stopwatch
+	Init_Uart_Ftdi(460800); //Init USART
+	Init_Leds(); //Init LEDs
+};
 
+/*----------------- INTERRUPT SERVICE ROUTINES --------------------------*/
+/**
+ * @brief Interrupción asociada a TEC1 que enciende un led azul y manda por UART
+ * una señal de trigger
+ */
 void Interruption_Trigger(void){
 		GPIOToggle(LEDRGB_B);
 		/*Send zeros for trigger signal*/
@@ -75,12 +90,24 @@ void Interruption_Trigger(void){
 		Chip_UART_SendBlocking(USB_UART, buffer_trigger, sizeof(buffer_trigger));
 };
 
-/*Sistick Handler*/
+
+/**
+ * @brief Interrupcion de TEC2
+ */
+void Interruption_TEC2(void){
+	GPIOToggle(LEDRGB_G);
+};
+
+
+/**
+ * Systick Handler
+ */
+static volatile uint32_t counter_systick = 0;
 void SysTick_Handler(void){
 	counter_systick++;
 	/* Routine every 10 ms*/
 	if ( counter_systick == 100 ){
-		GPIOToggle(LEDRGB_R);
+		//GPIOToggle(LEDRGB_R);
 		mpu9250Read();
 		uint8_t buffer_data_out[BUFFER_SIZE];
 		buffer_data_out[BUFFER_SIZE - 1] = '\n';
@@ -90,7 +117,9 @@ void SysTick_Handler(void){
 		counter_systick = 0;
 	}
 }
-//---------------------------------------------------------------------------------------------------
+
+
+/*----------------- MAIN --------------------------*/
 /**
  * App que envia por el serial (460800 baudrate) las lecturas de datos del mpu9250 (count data)
  * para ver la información usar codigo en python
@@ -98,14 +127,14 @@ void SysTick_Handler(void){
  */
 int main(void)
 {
-	SystemClockInit();
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
-	Init_Leds();
+	Hardware_Init();
+
 
 	GPIOInit( TEC_1 , GPIO_INPUT );
-	GPIOActivInt( GPIOGP0 , TEC_1 , Interruption_Trigger , 0 );
+	GPIOActivInt( GPIOGP0 , TEC_1 , Interruption_Trigger , 0 ); // Interruption TEC1 fall
+
+	GPIOInit( TEC_2 , GPIO_INPUT );
+	GPIOActivInt( GPIOGP1 , TEC_2 , Interruption_TEC2 , 0 ); // Interruption TEC2 fall
 
 	MPU9250_address_t addr = MPU9250_ADDRESS_0; // If MPU9250 AD0 pin is connected to GND
 	int8_t status;
@@ -117,7 +146,7 @@ int main(void)
 		GPIOOn(LED2);/* On red led */
 	}
 
-	SysTick_Config(SystemCoreClock/1000);//llamada systick cada 1ms
+	SysTick_Config(SystemCoreClock/1000);// Call systick every 1ms
 
 	while(TRUE){
 		__WFI ();

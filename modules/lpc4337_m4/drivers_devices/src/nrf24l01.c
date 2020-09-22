@@ -112,7 +112,8 @@ static void Nrf24CsHigh(nrf24l01_t *nrf24) {
 
 /*-------- Basic APIs --------*/
 
-void Nrf24Init(nrf24l01_t *nrf24) {
+uint8_t Nrf24Init(nrf24l01_t *nrf24) {
+	int8_t ret = NRF24_ERROR;
 	SpiDevInit(&nrf24->spi);
 
 	//nrf24->cs = GPIO_OUT;
@@ -133,6 +134,11 @@ void Nrf24Init(nrf24l01_t *nrf24) {
 
 	internal_states[nrf24->spi.id] = 0x00;
 	internal_states[nrf24->spi.id] |= INTERNAL_STATE_INIT;
+
+	if ( Nrf24RegisterRead8(nrf24, NRF24_RX_PW_P0 ) == 0x00) {
+		ret = NRF24_SUCCESS;
+	}
+	return ret;
 }
 
 int8_t Nrf24SendData(nrf24l01_t *nrf24, uint8_t *data, uint32_t length) {
@@ -265,7 +271,7 @@ void Nrf24RegisterInit(nrf24l01_t *nrf24) {
 	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_RETR,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x03); //ARD(Auto Retransmit Delay)|ARC(Auto Retransmit Count) 250 us | 3 retransmitions
 	Nrf24RegisterWrite8(nrf24, NRF24_RF_CH, 0x02); // Set channel in 0x02
-	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); // Air data rate 2Mbps | max power output| setup LNA gain
+	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); // Air data rate 2Mbps | max power output | setup LNA gain
 	Nrf24RegisterWrite8(nrf24, NRF24_STATUS, 0x70); // Clears interrupts RX_DR, TX_DS and MAX_RT
 	//Nrf24RegisterWrite8(nrf24,NRF24_CD, 0x00); Not necessary. Read only register
 	Nrf24RegisterWriteMulti(nrf24, NRF24_RX_ADDR_P0, ucRxAddr1, 5); // Writes default RX address in P0.
