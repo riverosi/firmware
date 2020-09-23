@@ -66,6 +66,8 @@
 #include "UART.h"
 #include "stopwatch.h"
 #include "nrf24l01.h"
+#include "sapi_imu_mpu9250.h"
+#include "MadgwickAHRS.h"
 
 
 #ifdef __cplusplus
