@@ -65,7 +65,14 @@
 /* 1 to activate */
 #define asRX 0
 #define asTX 1
-
+/*==================[Init_Hardware]=============================================*/
+void Init_Hardware(void){
+	fpuInit();
+	StopWatch_Init();
+	Init_Switches();
+	Init_Leds();
+	Init_Uart_Ftdi(460800);
+}
 /*==================[SystickHandler]=============================================*/
 void SysTick_Handler(void){
 	static uint32_t cnt = 0;
@@ -87,25 +94,17 @@ int main(void)
 
 /* perform the needed initialization here */
 	SystemClockInit();
-	fpuInit();
-	StopWatch_Init();
-	Init_Switches();
-	Init_Leds();
-	Init_Uart_Ftdi(460800);
+	Init_Hardware();
 
 	MPU9250_address_t addr = MPU9250_ADDRESS_0; // If MPU9250 AD0 pin is connected to GND
 	int8_t status;
 	status = mpu9250Init( addr );
 	if( status == 1){
 		GPIOOn(LED3);/* On green led */
-		StopWatch_DelayMs(300);
-		GPIOOff(LED3);
 
 	}
 	else{
 		GPIOOn(LED2);/* On red led */
-		StopWatch_DelayMs(300);
-		GPIOOff(LED2);
 
 	}
 
@@ -122,13 +121,9 @@ int main(void)
 
 	if ( Nrf24Init(&TX) == 0) {
 		GPIOOn(LEDRGB_G);
-		StopWatch_DelayMs(300);
-		GPIOOff(LEDRGB_G);
 	}
 	else {
 		GPIOOn(LEDRGB_R);
-		StopWatch_DelayMs(300);
-		GPIOOff(LEDRGB_R);
 	}
 
 	/* Enable ack payload */
