@@ -1,27 +1,33 @@
+# PID6169
 
-![Scheme|30%](fiuner.png)
-#Cátedra: Electrónica Programable
------------
+_Repo del PID:6169, en ese proyecto se usa la plataforma [EDU-CIAA](www.proyecto-ciaa.com.ar/) basada en LPC4337JBD144._
 
-Firmware inicial para el desarrollo de drivers de aplicación y proyectos del cursado con la plataforma [EDU-CIAA](www.proyecto-ciaa.com.ar/) basada en LPC4337JBD144. 
+## Comenzando 
 
- *  [Campus Virtual de la Cátedra](http://campus.ingenieria.uner.edu.ar/course/view.php?id=190)
- *  [Repositorio oficial del proyecto CIAA.](https://github.com/ciaa)
+_Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local para propósitos de desarrollo y pruebas._
 
 
+### Instalación 🔧
 
-**Autores:** 
+* _Instala las herramientas de software del repo official de la [CIAA](https://github.com/ciaa/software)._
+* _Clona este repo_
+* _Agregalo al árbol de proyectos del MCU Eclipse_
+* _Configura las opciones de build y debug_
+* _Se recomienda documentar con doxygen_
 
- *  Juan Manuel Reta (jmreta@ingenieria.uner.edu.ar)
- *  Eduardo Filomena (efilomena@ingenieria.uner.edu.ar)
- *  Gonzalo Cuenca (gcuenca@ingenieria.uner.edu.ar)
- *  Juan Ignacio Cerrudo (jcerrudo@ingenieria.uner.edu.ar)
- *  Albano Peñalva (apenialva@ingeneiria.uner.edu.ar)
- *  Sebastián Mateos (smateos@ingeneiria.uner.edu.ar)
- *  Joaquin Furios (joaquinfurios@gmail.com)
+## Ejecutando las pruebas ⚙️
+
+_Se recomienda crear los target para complilar y debugear como el tutotial de la CIAA de [firmware_v3 con eclipse](https://github.com/ciaa/firmware_v3/blob/master/documentation/firmware/eclipse/usage-es.md)._
+
+## Construido con 🛠️
+
+_Las siguientes herramientas se utilizaron para crear el proyecto_
+
+* [Doxygen](https://www.doxygen.nl/index.html) - Para generara la documentación
+* [VSCode](https://code.visualstudio.com/) - Para comunicar datos por la UART
 
 
+## Autores ✒️
 
-
-
-
+* **Ignacio Riveros** - *Becario* - [riverosi](https://github.com/riverosi)
+* **Esteban Osella** - *Director*
