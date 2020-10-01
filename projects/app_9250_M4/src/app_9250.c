@@ -80,14 +80,18 @@ void Hardware_Init(void){
  * una señal de trigger
  */
 void Interruption_Trigger(void){
-		GPIOToggle(LEDRGB_B);
-		/*Send zeros for trigger signal*/
-		uint8_t buffer_trigger[BUFFER_SIZE],var;
-		for (var = 0; var < BUFFER_SIZE; ++var) {
-			buffer_trigger[var] = 0;
-		}
-		buffer_trigger[BUFFER_SIZE - 1] = '\n';
-		Chip_UART_SendBlocking(USB_UART, buffer_trigger, sizeof(buffer_trigger));
+
+	GPIOToggle(LEDRGB_B);
+	/*Send zeros for trigger signal*/
+	uint8_t buffer_trigger[BUFFER_SIZE],var;
+	for (var = 0; var < BUFFER_SIZE; ++var) {
+		buffer_trigger[var] = 0;
+	}
+
+	buffer_trigger[BUFFER_SIZE - 1] = '\n';
+
+	Chip_UART_SendBlocking(USB_UART, buffer_trigger, sizeof(buffer_trigger));
+
 };
 
 
@@ -102,20 +106,22 @@ void Interruption_TEC2(void){
 /**
  * Systick Handler
  */
-static volatile uint32_t counter_systick = 0;
+
 void SysTick_Handler(void){
-	counter_systick++;
-	/* Routine every 10 ms*/
-	if ( counter_systick == 100 ){
-		//GPIOToggle(LEDRGB_R);
+	static uint32_t counter_systick = 0;
+
+	counter_systick = counter_systick % 500; /*< Call Systick every 500ms*/
+
+	if ( counter_systick == 0){
 		mpu9250Read();
+		GPIOToggle(LED1);
 		uint8_t buffer_data_out[BUFFER_SIZE];
 		buffer_data_out[BUFFER_SIZE - 1] = '\n';
 		mpu9250GetDataBuffer(buffer_data_out);
 		Chip_UART_SendBlocking(USB_UART, buffer_data_out, sizeof(buffer_data_out));
-		/*Counter Systick Reset*/
-		counter_systick = 0;
 	}
+
+	counter_systick++;
 }
 
 
@@ -149,7 +155,7 @@ int main(void)
 	SysTick_Config(SystemCoreClock/1000);// Call systick every 1ms
 
 	while(TRUE){
-		__WFI ();
+		__WFI();
 	};
 
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado

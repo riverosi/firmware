@@ -84,64 +84,64 @@ int32_t lsm9ds1_write_reg(stmdev_ctx_t* ctx, uint8_t reg, uint8_t* data,
   *
   */
 
-float_t lsm9ds1_from_fs2g_to_mg(int16_t lsb)
+float lsm9ds1_from_fs2g_to_mg(int16_t lsb)
 {
-  return ((float_t)lsb *0.061f);
+  return ((float)lsb *0.061f);
 }
 
-float_t lsm9ds1_from_fs4g_to_mg(int16_t lsb)
+float lsm9ds1_from_fs4g_to_mg(int16_t lsb)
 {
-  return ((float_t)lsb *0.122f);
+  return ((float)lsb *0.122f);
 }
 
-float_t lsm9ds1_from_fs8g_to_mg(int16_t lsb)
+float lsm9ds1_from_fs8g_to_mg(int16_t lsb)
 {
-  return ((float_t)lsb *0.244f);
+  return ((float)lsb *0.244f);
 }
 
-float_t lsm9ds1_from_fs16g_to_mg(int16_t lsb)
+float lsm9ds1_from_fs16g_to_mg(int16_t lsb)
 {
-  return ((float_t)lsb *0.732f);
+  return ((float)lsb *0.732f);
 }
 
-float_t lsm9ds1_from_fs245dps_to_mdps(int16_t lsb)
+float lsm9ds1_from_fs245dps_to_mdps(int16_t lsb)
 {
-  return ((float_t)lsb *8.75f);
+  return ((float)lsb *8.75f);
 }
 
-float_t lsm9ds1_from_fs500dps_to_mdps(int16_t lsb)
+float lsm9ds1_from_fs500dps_to_mdps(int16_t lsb)
 {
-  return ((float_t)lsb *17.50f);
+  return ((float)lsb *17.50f);
 }
 
-float_t lsm9ds1_from_fs2000dps_to_mdps(int16_t lsb)
+float lsm9ds1_from_fs2000dps_to_mdps(int16_t lsb)
 {
-  return ((float_t)lsb *70.0f);
+  return ((float)lsb *70.0f);
 }
 
-float_t lsm9ds1_from_fs4gauss_to_mG(int16_t lsb)
+float lsm9ds1_from_fs4gauss_to_mG(int16_t lsb)
 {
-  return ((float_t)lsb *0.14f);
+  return ((float)lsb *0.14f);
 }
 
-float_t lsm9ds1_from_fs8gauss_to_mG(int16_t lsb)
+float lsm9ds1_from_fs8gauss_to_mG(int16_t lsb)
 {
-  return ((float_t)lsb *0.29f);
+  return ((float)lsb *0.29f);
 }
 
-float_t lsm9ds1_from_fs12gauss_to_mG(int16_t lsb)
+float lsm9ds1_from_fs12gauss_to_mG(int16_t lsb)
 {
-  return ((float_t)lsb *0.43f);
+  return ((float)lsb *0.43f);
 }
 
-float_t lsm9ds1_from_fs16gauss_to_mG(int16_t lsb)
+float lsm9ds1_from_fs16gauss_to_mG(int16_t lsb)
 {
-  return ((float_t)lsb *0.58f);
+  return ((float)lsb *0.58f);
 }
 
-float_t lsm9ds1_from_lsb_to_celsius(int16_t lsb)
+float lsm9ds1_from_lsb_to_celsius(int16_t lsb)
 {
-  return (((float_t)lsb / 16.0f) + 25.0f);
+  return (((float)lsb / 16.0f) + 25.0f);
 }
 
 /**

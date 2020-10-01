@@ -417,7 +417,7 @@ typedef struct {
 typedef struct {
   uint8_t st                       : 1;
   uint8_t fast_odr                 : 1;
-  uint8_t _do                       : 3;
+  uint8_t _do                      : 3;
   uint8_t om                       : 2;
   uint8_t temp_comp                : 1;
 } lsm9ds1_ctrl_reg1_m_t;
@@ -575,21 +575,21 @@ int32_t lsm9ds1_read_reg(stmdev_ctx_t *ctx, uint8_t reg, uint8_t* data,
 int32_t lsm9ds1_write_reg(stmdev_ctx_t *ctx, uint8_t reg, uint8_t* data,
                           uint16_t len);
 
-extern float_t lsm9ds1_from_fs2g_to_mg(int16_t lsb);
-extern float_t lsm9ds1_from_fs4g_to_mg(int16_t lsb);
-extern float_t lsm9ds1_from_fs8g_to_mg(int16_t lsb);
-extern float_t lsm9ds1_from_fs16g_to_mg(int16_t lsb);
+extern float lsm9ds1_from_fs2g_to_mg(int16_t lsb);
+extern float lsm9ds1_from_fs4g_to_mg(int16_t lsb);
+extern float lsm9ds1_from_fs8g_to_mg(int16_t lsb);
+extern float lsm9ds1_from_fs16g_to_mg(int16_t lsb);
 
-extern float_t lsm9ds1_from_fs245dps_to_mdps(int16_t lsb);
-extern float_t lsm9ds1_from_fs500dps_to_mdps(int16_t lsb);
-extern float_t lsm9ds1_from_fs2000dps_to_mdps(int16_t lsb);
+extern float lsm9ds1_from_fs245dps_to_mdps(int16_t lsb);
+extern float lsm9ds1_from_fs500dps_to_mdps(int16_t lsb);
+extern float lsm9ds1_from_fs2000dps_to_mdps(int16_t lsb);
 
-extern float_t lsm9ds1_from_fs4gauss_to_mG(int16_t lsb);
-extern float_t lsm9ds1_from_fs8gauss_to_mG(int16_t lsb);
-extern float_t lsm9ds1_from_fs12gauss_to_mG(int16_t lsb);
-extern float_t lsm9ds1_from_fs16gauss_to_mG(int16_t lsb);
+extern float lsm9ds1_from_fs4gauss_to_mG(int16_t lsb);
+extern float lsm9ds1_from_fs8gauss_to_mG(int16_t lsb);
+extern float lsm9ds1_from_fs12gauss_to_mG(int16_t lsb);
+extern float lsm9ds1_from_fs16gauss_to_mG(int16_t lsb);
 
-extern float_t lsm9ds1_from_lsb_to_celsius(int16_t lsb);
+extern float lsm9ds1_from_lsb_to_celsius(int16_t lsb);
 
 typedef enum {
   LSM9DS1_245dps = 0,
