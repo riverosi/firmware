@@ -67,12 +67,13 @@ typedef struct {
 	uint8_t i2c_address;
 } sensbus_t;
 
-
 #define I2C_BUFFER_LEN 		8
 /* Magnetometer bus config */
-static sensbus_t mag_bus = {I2C0, LSM9DS1_MAG_I2C_ADD_H };
+static sensbus_t mag_bus = { I2C0 , LSM9DS1_MAG_I2C_ADD_H>>1 };
 /* IMU bus config */
-static sensbus_t imu_bus = {I2C0, LSM9DS1_IMU_I2C_ADD_H };
+static sensbus_t imu_bus = { I2C0 , LSM9DS1_IMU_I2C_ADD_H>>1 };
+
+
 /* Private macro -------------------------------------------------------------*/
 #define    BOOT_TIME            20 //ms
 
@@ -116,7 +117,6 @@ int main(void)
 {
 	SystemClockInit();
 	fpuInit();
-	StopWatch_Init();
 	Init_Leds();
 	Init_Uart_Ftdi(460800);
 
@@ -251,7 +251,7 @@ static int32_t platform_write_imu(void *handle, uint8_t reg, uint8_t *bufp,
 
 	I2CM_XFER_T i2cData;
 	// Prepare the i2cData register
-	i2cData.slaveAddr = sensbus->i2c_address>>1;
+	i2cData.slaveAddr = sensbus->i2c_address;
 	i2cData.options   = 0;
 	i2cData.status    = 0;
 	i2cData.txBuff    = array;
@@ -294,7 +294,7 @@ static int32_t platform_write_mag(void *handle, uint8_t reg, uint8_t *bufp,
 
 	I2CM_XFER_T i2cData;
 	// Prepare the i2cData register
-	i2cData.slaveAddr = sensbus->i2c_address>>1;
+	i2cData.slaveAddr = sensbus->i2c_address;
 	i2cData.options   = 0;
 	i2cData.status    = 0;
 	i2cData.txBuff    = array;
@@ -328,7 +328,7 @@ static int32_t platform_read_imu(void *handle, uint8_t reg, uint8_t *bufp,
 
 	I2CM_XFER_T i2cData;
 
-	i2cData.slaveAddr = sensbus->i2c_address>>1;
+	i2cData.slaveAddr = sensbus->i2c_address;
 	i2cData.options   = 0;
 	i2cData.status    = 0;
 	i2cData.txBuff    = &reg;
@@ -359,9 +359,8 @@ static int32_t platform_read_mag(void *handle, uint8_t reg, uint8_t *bufp,
 {
 	sensbus_t *sensbus = (sensbus_t*)handle;
 
-
   	I2CM_XFER_T i2cData;
-  	i2cData.slaveAddr = sensbus->i2c_address>>1;
+  	i2cData.slaveAddr = sensbus->i2c_address;
   	i2cData.options   = 0;
   	i2cData.status    = 0;
   	i2cData.txBuff    = &reg;
@@ -373,7 +372,9 @@ static int32_t platform_read_mag(void *handle, uint8_t reg, uint8_t *bufp,
   	{
   		return -1;
   	}
+
   	return 0;
+
 }
 
 /*

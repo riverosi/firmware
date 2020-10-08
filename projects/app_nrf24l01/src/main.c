@@ -50,6 +50,21 @@
  * ---------------------------
  *
  */	
+/** @section wiring Wiring
+ * ##Transmitter NRF24L01 ##
+ *
+ * | NRF24L01 pins (PTX) | EDU-CIAA pins |
+ * |:-------------------:|:-------------:|
+ * |         VCC         |    +3.3V      |
+ * |         GND         |    GND        |
+ * |         CSN         |    GPIO1      |
+ * |         CE	         |    GPIO3      |
+ * |         SCK         |    SPI_SCK    |
+ * |         MOSI        |    SPI_MOSI   |
+ * |         IRQ         |    GPIO5      |
+ * |         MISO        |    SPI_MISO   |
+ *
+ */
 
 /*
  * modification history (new versions first)
@@ -62,8 +77,7 @@
 #include "systemclock.h"
 #include "chip.h"
 /*==================[Definitions]=============================================*/
-/* 1 to activate */
-#define asRX 0
+/* Change 1 to activate */
 #define asTX 1
 /*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void){
@@ -76,7 +90,7 @@ void Init_Hardware(void){
 /*==================[SystickHandler]=============================================*/
 void SysTick_Handler(void){
 	static uint32_t cnt = 0;
-	cnt = cnt % 500;
+	cnt = cnt % 200;
 
 	if (cnt == 0){
 
@@ -96,16 +110,6 @@ int main(void)
 	SystemClockInit();
 	Init_Hardware();
 
-	MPU9250_address_t addr = MPU9250_ADDRESS_0; // If MPU9250 AD0 pin is connected to GND
-	int8_t status;
-	status = mpu9250Init( addr );
-	if( status == 1){
-		GPIOOn(LED3);/* On green led */
-	}
-	else{
-		GPIOOn(LED2);/* On red led */
-	}
-
 /*	Select mode of NRF	*/
 #if asTX
 
@@ -117,7 +121,7 @@ int main(void)
 	TX.mode = PTX;
 	TX.en_ack_pay = TRUE;
 
-	if ( Nrf24Init(&TX) == 0) {
+	if ( Nrf24Init(&TX) == NRF24_SUCCESS) {
 		GPIOOn(LEDRGB_G);
 	}
 	else {
@@ -135,39 +139,12 @@ int main(void)
 
 	/* Set buffer data */
 	snd_to_PRX[0] = 1;
-
+	Nrf24EnableTxMode(&TX);
 	Nrf24PrimaryDevISRConfig(&TX);
 
 
-
 #endif
 
-
-
-#if asRX
-	nrf24l01_t RX;
-	RX.spi.cfg=nrf24l01_spi_default_cfg;
-	RX.cs.n=GPIO_2;
-	RX.ce.n=GPIO_3;
-	RX.irq.n=GPIO_5;
-	RX.mode=PRX;
-	RX.en_ack_pay=TRUE;
-	RX.pin_int_num=5;
-
-	Nrf24Init(&RX);
-
-	/* Enable ack payload */
-	Nrf24EnableFeatureAckPL(&RX);
-
-	/* Set the first ack payload */
-	uint8_t first_ack[21] = "First ack received!!!";
-	Nrf24SetAckPayload(&RX,first_ack, 0x00, 21);
-
-	/* Enable RX mode */
-	Nrf24EnableRxMode(&RX);
-
-	Nrf24SecondaryDevISRConfig(&RX); // GPIO5_IRQHandler
-#endif
 
 
 	SysTick_Config(SystemCoreClock/1000);/*call systick every 1ms*/
