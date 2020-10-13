@@ -79,6 +79,9 @@
 /*==================[Definitions]=============================================*/
 /* Change 1 to activate */
 #define asTX 1
+#define asRX 0
+
+
 /*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void){
 	fpuInit();
@@ -121,38 +124,110 @@ int main(void)
 	TX.mode = PTX;
 	TX.en_ack_pay = TRUE;
 
-	if ( Nrf24Init(&TX) == NRF24_SUCCESS) {
-		GPIOOn(LEDRGB_G);
-	}
-	else {
-		GPIOOn(LEDRGB_R);
-	}
+	Nrf24Init(&TX);
 
 	/* Enable ack payload */
 	Nrf24EnableFeatureAckPL(&TX);
-
-	uint8_t ucRxAddr[5] = { 0xE7, 0xE7, 0xE7, 0xE7, 0xE7 };// Set RX Address
-	uint8_t ucTxAddr[5] = { 0xE7, 0xE7, 0xE7, 0xE7, 0xE7 };// Set TX Address
-
-	Nrf24SetRxAddress( &TX , NRF24_PIPE0 ,  ucRxAddr );
-	Nrf24SetTXAddress( &TX , ucTxAddr );
 
 	/* Set buffer data */
 	snd_to_PRX[0] = 1;
 	Nrf24EnableTxMode(&TX);
 	Nrf24PrimaryDevISRConfig(&TX);
 
+	uint8_t var = Nrf24RegisterRead8(&TX , NRF24_CONFIG );
+
+	uint8_t add_tx[5];
+	Nrf24RegisterReadMulti( &TX , NRF24_TX_ADDR , add_tx, 5 );
+
+	uint8_t add_rx_p0[5];
+	Nrf24RegisterReadMulti( &TX , NRF24_RX_ADDR_P0 , add_rx_p0 , 5 );
+
+	uint8_t add_rx_p1[5];
+	Nrf24RegisterReadMulti( &TX , NRF24_RX_ADDR_P1 , add_rx_p1 , 5 );
+
+	uint8_t channel = Nrf24RegisterRead8(&TX , NRF24_RF_CH);
+
+	uint8_t setup = Nrf24RegisterRead8(&TX , NRF24_RF_SETUP);
+
 
 #endif
 
+#if asRX
+	nrf24l01_t RX;
+	RX.spi.cfg = nrf24l01_spi_default_cfg;
+	RX.cs = T_FIL0;
+	RX.ce = T_FIL2;
+	RX.irq = T_FIL3;
+	RX.mode = PRX;
+	RX.en_ack_pay = TRUE;
 
+	Nrf24Init(&RX);
+
+	/* Enable ack payload */
+	Nrf24EnableFeatureAckPL(&RX);
+
+	/* Set the first ack payload */
+	uint8_t first_ack[21] = "First ack received!!!";
+	Nrf24SetAckPayload(&RX,first_ack, 0x00, 21);
+
+	/* Enable RX mode */
+	Nrf24EnableRxMode(&RX);
+	Nrf24SecondaryDevISRConfig(&RX); // GPIO5_IRQHandler
+
+#endif
 
 	SysTick_Config(SystemCoreClock/1000);/*call systick every 1ms*/
 
+	uint8_t key=0;
 
     //Variables
    
 	while(TRUE){
+
+		key=Read_Switches();
+
+#if asTX
+		snd_to_PRX[0]=1;
+		/* Turns on led associated with button if acknowledge is received */
+		if(rcv_fr_PRX[0]==1){
+			GPIOOn(LEDRGB_G);
+			StopWatch_DelayMs(100);
+			GPIOOff(LEDRGB_G);
+		}
+		if(rcv_fr_PRX[0]==2){
+			GPIOOn(LEDRGB_R);
+			StopWatch_DelayMs(100);
+			GPIOOff(LEDRGB_R);
+		}
+		if(rcv_fr_PRX[0]==4){
+			GPIOOn(LEDRGB_B);
+			StopWatch_DelayMs(100);
+			GPIOOff(LEDRGB_B);
+		}
+
+#endif
+
+#if asRX
+		/* Turns on led associated with button if data is received from PTX */
+		snd_to_PTX[0]=key;
+		if(rcv_fr_PTX[0]==1){
+			GPIOOn(LED1);
+			StopWatch_DelayMs(100);
+			GPIOOff(LED1);
+		}
+		if(rcv_fr_PTX[0]==2){
+			GPIOOn(LED2);
+			StopWatch_DelayMs(100);
+			GPIOOff(LED2);
+		}
+		if(rcv_fr_PTX[0]==4){
+			GPIOOn(LED3);
+			StopWatch_DelayMs(100);
+			GPIOOff(LED3);
+		}
+
+#endif
+
 			__WFI ();
 		};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
