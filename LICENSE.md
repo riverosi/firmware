@@ -1,4 +1,4 @@
-Copyright (c) <2020> <Riveros Ignacio>. All rights reserved.
+Copyright (c) 2020 Riveros Ignacio. All rights reserved.
 
 This file is part of CIAA Project: www.proyecto-ciaa.com.ar
 
