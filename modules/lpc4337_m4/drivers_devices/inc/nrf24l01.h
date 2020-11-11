@@ -862,6 +862,7 @@ void Nrf24TxTick();
  * @return
  *
  */
+void Nrf24DisableAllAutoAck(nrf24l01_t *nrf24);
 
 #endif /* MODULES_LPC4337_M4_DRIVERS_BM_INC_NRF24H_ */
 
