@@ -122,26 +122,19 @@ int main(void)
 	TX.ce = GPIO3;
 	TX.irq = GPIO5;
 	TX.mode = PTX;
-	TX.en_ack_pay = FALSE;
+	TX.en_ack_pay = TRUE;
 
 	Nrf24Init(&TX);
 
 	/* Enable ack payload */
-	//Nrf24EnableFeatureAckPL(&TX);
+	Nrf24EnableFeatureAckPL(&TX);
+
+	/* Set buffer data */
+	snd_to_PRX[0] = 1;
 	Nrf24EnableTxMode(&TX);
 	Nrf24PrimaryDevISRConfig(&TX);
 
-	Nrf24DisableAllAutoAck(&TX);
-
-	uint8_t address_tx[] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
-	Nrf24SetTXAddress( &TX, address_tx );
-
-	uint8_t address_rx[] = { 0x01, 0x01, 0x01, 0x01, 0x01 };
-	Nrf24SetRxAddress( &TX, NRF24_PIPE0 , address_rx );
-
-	uint8_t config = Nrf24RegisterRead8(&TX , NRF24_CONFIG );
-
-	uint8_t en_aa = Nrf24RegisterRead8(&TX , NRF24_EN_AA );
+	uint8_t var = Nrf24RegisterRead8(&TX , NRF24_CONFIG );
 
 	uint8_t add_tx[5];
 	Nrf24RegisterReadMulti( &TX , NRF24_TX_ADDR , add_tx, 5 );
@@ -160,12 +153,11 @@ int main(void)
 #endif
 
 #if asRX
-
 	nrf24l01_t RX;
 	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = GPIO1;
-	RX.ce = GPIO3;
-	RX.irq = GPIO5;
+	RX.cs = T_FIL0;
+	RX.ce = T_FIL2;
+	RX.irq = T_FIL3;
 	RX.mode = PRX;
 	RX.en_ack_pay = TRUE;
 
@@ -173,35 +165,14 @@ int main(void)
 
 	/* Enable ack payload */
 	Nrf24EnableFeatureAckPL(&RX);
-	uint8_t address_tx[] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
-	Nrf24SetTXAddress(&RX, address_tx );
-
-	uint8_t address_rx[] = { 0x01, 0x01, 0x01, 0x01, 0x01 };
-	Nrf24SetRxAddress(&RX, NRF24_PIPE0 , address_rx );
-
 
 	/* Set the first ack payload */
-	//uint8_t first_ack[21] = "First ack received!!!";
-	//Nrf24SetAckPayload(&RX,first_ack, 0x00, 21);
+	uint8_t first_ack[21] = "First ack received!!!";
+	Nrf24SetAckPayload(&RX,first_ack, 0x00, 21);
 
 	/* Enable RX mode */
 	Nrf24EnableRxMode(&RX);
 	Nrf24SecondaryDevISRConfig(&RX); // GPIO5_IRQHandler
-
-	uint8_t var = Nrf24RegisterRead8( &RX , NRF24_CONFIG );
-
-	uint8_t add_tx[5];
-	Nrf24RegisterReadMulti( &RX , NRF24_TX_ADDR , add_tx, 5 );
-
-	uint8_t add_rx_p0[5];
-	Nrf24RegisterReadMulti( &RX , NRF24_RX_ADDR_P0 , add_rx_p0 , 5 );
-
-	uint8_t add_rx_p1[5];
-	Nrf24RegisterReadMulti( &RX , NRF24_RX_ADDR_P1 , add_rx_p1 , 5 );
-
-	uint8_t channel = Nrf24RegisterRead8( &RX , NRF24_RF_CH );
-
-	uint8_t setup = Nrf24RegisterRead8( &RX , NRF24_RF_SETUP );
 
 #endif
 
@@ -216,8 +187,7 @@ int main(void)
 		key=Read_Switches();
 
 #if asTX
-		snd_to_PRX[0]=key;
-
+		snd_to_PRX[0]=1;
 		/* Turns on led associated with button if acknowledge is received */
 		if(rcv_fr_PRX[0]==1){
 			GPIOOn(LEDRGB_G);
@@ -238,23 +208,8 @@ int main(void)
 #endif
 
 #if asRX
-		uint8_t pipe[2];
-		Nrf24ReadRxPayload(&RX, rcv_fr_PTX , 1);
-		uint8_t dataready = Nrf24IsDataReadyRx( &RX , pipe );
-
-		Nrf24ReadRxPayload(&RX ,rcv_fr_PTX ,32);
-
-		var = Nrf24RegisterRead8( &RX , NRF24_CONFIG );
-		if (dataready == NRF24_SUCCESS) {
-			GPIOOn(LED3);
-			StopWatch_DelayMs(100);
-			GPIOOff(LED3);
-		}
-
 		/* Turns on led associated with button if data is received from PTX */
-
 		snd_to_PTX[0]=key;
-
 		if(rcv_fr_PTX[0]==1){
 			GPIOOn(LED1);
 			StopWatch_DelayMs(100);

@@ -135,7 +135,7 @@ uint8_t Nrf24Init(nrf24l01_t *nrf24) {
 	internal_states[nrf24->spi.id] = 0x00;
 	internal_states[nrf24->spi.id] |= INTERNAL_STATE_INIT;
 
-	if ( Nrf24RegisterRead8( nrf24, NRF24_RX_PW_P0 ) == 0x00) {
+	if ( Nrf24RegisterRead8(nrf24, NRF24_RX_PW_P0 ) == 0x00) {
 		ret = NRF24_SUCCESS;
 	}
 	return ret;
@@ -258,16 +258,21 @@ void Nrf24RegisterInit(nrf24l01_t *nrf24) {
 
 	Nrf24CeLow(nrf24);
 	//FIXME
+	//Nrf24RegisterWrite8(nrf24,NRF24_CONFIG,0x09);
 	Nrf24RegisterWrite8(nrf24, NRF24_CONFIG, NRF24_EN_CRC | NRF24_PRIM_RX);
+	//Nrf24RegisterWrite8(nrf24,NRF24_EN_AA,0x3F);
 	Nrf24RegisterWrite8(nrf24, NRF24_EN_AA,
 			NRF24_ENAA_P5 | NRF24_ENAA_P4 | NRF24_ENAA_P3 | NRF24_ENAA_P2
 					| NRF24_ENAA_P1 | NRF24_ENAA_P0);
+	//Nrf24RegisterWrite8(nrf24,NRF24_EN_RXADDR,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_EN_RXADDR, NRF24_ERX_P1 | NRF24_ERX_P0);
+	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_AW,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_AW, NRF24_AW_5BYTES);
-	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x00); //ARD(Auto Retransmit Delay)|ARC(Auto Retransmit Count) 250 us | 3 retransmitions
+	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_RETR,0x03);
+	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x03); //ARD(Auto Retransmit Delay)|ARC(Auto Retransmit Count) 250 us | 3 retransmitions
 	Nrf24RegisterWrite8(nrf24, NRF24_RF_CH, 0x02); // Set channel in 0x02
 	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); // Air data rate 2Mbps | max power output | setup LNA gain
-	Nrf24RegisterWrite8(nrf24, NRF24_STATUS, 0x00); // Clears interrupts RX_DR, TX_DS and MAX_RT
+	Nrf24RegisterWrite8(nrf24, NRF24_STATUS, 0x70); // Clears interrupts RX_DR, TX_DS and MAX_RT
 	//Nrf24RegisterWrite8(nrf24,NRF24_CD, 0x00); Not necessary. Read only register
 	Nrf24RegisterWriteMulti(nrf24, NRF24_RX_ADDR_P0, ucRxAddr1, 5); // Writes default RX address in P0.
 	Nrf24RegisterWriteMulti(nrf24, NRF24_RX_ADDR_P1, ucRxAddr2, 5); // Writes default RX address in P1.
@@ -276,7 +281,7 @@ void Nrf24RegisterInit(nrf24l01_t *nrf24) {
 	Nrf24RegisterWrite8(nrf24, NRF24_RX_ADDR_P4, 0xC5); // First MSBytes equal to P1
 	Nrf24RegisterWrite8(nrf24, NRF24_RX_ADDR_P5, 0xC6); // First MSBytes equal to P1
 	Nrf24RegisterWriteMulti(nrf24, NRF24_TX_ADDR, ucRxAddr1, 5); //Writes default TX address
-	Nrf24RegisterWrite8(nrf24, NRF24_RX_PW_P0, 0x32); // Pipe not used because 0 bytes payload. MUST BE SET LATER
+	Nrf24RegisterWrite8(nrf24, NRF24_RX_PW_P0, 0x00); // Pipe not used because 0 bytes payload. MUST BE SET LATER
 	Nrf24RegisterWrite8(nrf24, NRF24_RX_PW_P1, 0x00); // Pipe not used because 0 bytes payload
 	Nrf24RegisterWrite8(nrf24, NRF24_RX_PW_P2, 0x00); // Pipe not used because 0 bytes payload
 	Nrf24RegisterWrite8(nrf24, NRF24_RX_PW_P3, 0x00); // Pipe not used because 0 bytes payload
@@ -924,11 +929,6 @@ void Nrf24TxTick(){
 	}
 
 }
-
-void Nrf24DisableAllAutoAck(nrf24l01_t *nrf24){
-	Nrf24RegisterWrite8(nrf24, NRF24_EN_AA, 0x00);
-}
-
 
 /** @} doxygen end group definition */
 
