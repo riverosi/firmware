@@ -80,14 +80,17 @@
 /* Change 1 to activate */
 #define asTX 1
 #define asRX 0
-
-
+/* Select Board */
+#define edu_ciaa 1
+#define ciaa 0
 /*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void){
 	fpuInit();
 	StopWatch_Init();
+#if edu_ciaa
 	Init_Switches();
 	Init_Leds();
+#endif
 	Init_Uart_Ftdi(460800);
 }
 /*==================[SystickHandler]=============================================*/
@@ -96,9 +99,10 @@ void SysTick_Handler(void){
 	cnt = cnt % 200;
 
 	if (cnt == 0){
-
+#if edu_ciaa
 		GPIOToggle(LED1);
-#if asTX
+#endif
+		#if asTX
 		Nrf24TxTick();
 #endif
 

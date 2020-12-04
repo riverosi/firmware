@@ -90,9 +90,12 @@ typedef enum {
 	LCD_RS, /**< Mapeo GPIO5[13] en P4_9 */
 	LCD_EN, /**< Mapeo GPIO5[12] en P4_8 */
 	T_COL0, /**< Mapeo GPIO1[8] en P1_5 */
-	T_FIL0, /**< Mapeo GPIO2[2] en P4_2 */
+	T_FIL0, /**< Mapeo GPIO2[2] en P4_0 */
 	T_FIL2, /**< Mapeo GPIO2[2] en P4_2 */
-	T_FIL3 /**< Mapeo GPIO2[3] en P4_3 */
+	T_FIL3, /**< Mapeo GPIO2[3] en P4_3 */
+	CIAA_GPIO2, /**< Mapeo para CIAA Board GPIO3[8] en P7_0 */
+	CIAA_GPIO3, /**< Mapeo para CIAA Board GPIO5[15] en P6_7 */
+	CIAA_GPIO7 /**< Mapeo para CIAA Board GPIO3[2] en P6_3 */
 } gpio_t;
 
 /** @typedef gpiogp_t

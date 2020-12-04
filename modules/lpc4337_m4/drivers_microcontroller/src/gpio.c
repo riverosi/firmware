@@ -68,8 +68,7 @@
 /** @typedef digitalIO
  * @brief Opciones de configuracion para los gpio
  */
-typedef struct
-{
+typedef struct {
 	uint8_t hwPort; /**< Puerto del hardware*/
 	uint8_t hwPin; /**< Pin del hardware*/
 	uint8_t gpioPort; /**< Puerto del gpio*/
@@ -119,31 +118,33 @@ void GINT0_IRQHandler(void);
 
 /*==================[internal data definition]===============================*/
 
-const digitalIO gpio[] =
-{
-	{0x01, 0x00, 0x00, 0x04, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration TEC1*/
-	{0x01, 0x01, 0x00, 0x08, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration TEC2*/
-	{0x01, 0x02, 0x00, 0x09, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration TEC3*/
-	{0x01, 0x06, 0x01, 0x09, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration TEC4*/
-	{0x02, 0x0A, 0x00, 0x0E, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LED1*/
-	{0x02, 0x0B, 0x01, 0x0B, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LED2*/
-	{0x02, 0x0C, 0x01, 0x0C, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LED3*/
-	{0x02, 0x00, 0x05, 0x00, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LEDRGB_R*/
-	{0x02, 0x01, 0x05, 0x01, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LEDRGB_G*/
-	{0x02, 0x02, 0x05, 0x02, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LEDRGB_B*/
-	{0x04, 0x04, 0x02, 0x04, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LCD1*/
-	{0x04, 0x05, 0x02, 0x05, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LCD2*/
-	{0x04, 0x06, 0x02, 0x06, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration LCD3*/
-	{0x04, 0x0A, 0x05, 0x0E, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LCD4*/
-	{0x06, 0x04, 0x03, 0x03, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration GPIO1*/
-	{0x06, 0x07, 0x05, 0x0F, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration GPIO3*/
-	{0x06, 0x09, 0x03, 0x05, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration GPIO5*/
-	{0x04, 0x09, 0x05, 0x0D, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LCD_RS*/
-	{0x04, 0x08, 0x05, 0x0C, MD_PUP|MD_EZI|MD_ZI|FUNC4}, /* Configuration LCD_EN*/
-	{0x01, 0x05, 0x01, 0x08, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration T_COL0*/
-	{0x04, 0x00, 0x02, 0x00, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration T_FIL0*/
-	{0x04, 0x02, 0x02, 0x02, MD_PUP|MD_EZI|MD_ZI|FUNC0}, /* Configuration T_FIL2*/
-	{0x04, 0x03, 0x02, 0x03, MD_PUP|MD_EZI|MD_ZI|FUNC0}  /* Configuration T_FIL3*/
+const digitalIO gpio[] = { { 0x01, 0x00, 0x00, 0x04, MD_PUP | MD_EZI | MD_ZI
+		| FUNC0 }, /* Configuration TEC1*/
+{ 0x01, 0x01, 0x00, 0x08, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC2*/
+{ 0x01, 0x02, 0x00, 0x09, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC3*/
+{ 0x01, 0x06, 0x01, 0x09, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC4*/
+{ 0x02, 0x0A, 0x00, 0x0E, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LED1*/
+{ 0x02, 0x0B, 0x01, 0x0B, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LED2*/
+{ 0x02, 0x0C, 0x01, 0x0C, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LED3*/
+{ 0x02, 0x00, 0x05, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LEDRGB_R*/
+{ 0x02, 0x01, 0x05, 0x01, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LEDRGB_G*/
+{ 0x02, 0x02, 0x05, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LEDRGB_B*/
+{ 0x04, 0x04, 0x02, 0x04, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LCD1*/
+{ 0x04, 0x05, 0x02, 0x05, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LCD2*/
+{ 0x04, 0x06, 0x02, 0x06, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration LCD3*/
+{ 0x04, 0x0A, 0x05, 0x0E, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LCD4*/
+{ 0x06, 0x04, 0x03, 0x03, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration GPIO1*/
+{ 0x06, 0x07, 0x05, 0x0F, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration GPIO3*/
+{ 0x06, 0x09, 0x03, 0x05, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration GPIO5*/
+{ 0x04, 0x09, 0x05, 0x0D, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LCD_RS*/
+{ 0x04, 0x08, 0x05, 0x0C, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration LCD_EN*/
+{ 0x01, 0x05, 0x01, 0x08, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_COL0*/
+{ 0x04, 0x00, 0x02, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL0*/
+{ 0x04, 0x02, 0x02, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL2*/
+{ 0x04, 0x03, 0x02, 0x03, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL3*/
+{ 0x07, 0x00, 0x03, 0x08, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO2*/
+{ 0x06, 0x07, 0x05, 0x0F, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO3*/
+{ 0x06, 0x03, 0x03, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO7*/
 
 };
 
@@ -156,73 +157,74 @@ void (*ptr_GPIO_group_int_func[2])(); /**< Pointer to the function to be called 
 
 /*==================[external functions definition]==========================*/
 
-
-void GPIOInit(gpio_t pin, io_t io)
-{
+void GPIOInit(gpio_t pin, io_t io) {
 	Chip_GPIO_Init(LPC_GPIO_PORT);
 	Chip_SCU_PinMuxSet(gpio[pin].hwPort, gpio[pin].hwPin, gpio[pin].mode); /* Asocia el pin fisico del micro a un gpio */
-	Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin, io); /* Indica si el gpio sera de salida o entrada */
-	Chip_GPIO_SetPinState(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin, FALSE); /* Inicializa el gpio en 0 */
+	Chip_GPIO_SetPinDIR(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin,
+			io); /* Indica si el gpio sera de salida o entrada */
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin,
+			FALSE); /* Inicializa el gpio en 0 */
 }
 
-void GPIOOn(gpio_t pin)
-{
-	Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin);
+void GPIOOn(gpio_t pin) {
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT, gpio[pin].gpioPort,
+			gpio[pin].gpioPin);
 }
 
-void GPIOOff(gpio_t pin)
-{
-	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin);
+void GPIOOff(gpio_t pin) {
+	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, gpio[pin].gpioPort,
+			gpio[pin].gpioPin);
 }
 
-void GPIOState(gpio_t pin, bool state)
-{
-	Chip_GPIO_SetPinState(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin, state);
+void GPIOState(gpio_t pin, bool state) {
+	Chip_GPIO_SetPinState(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin,
+			state);
 }
 
-void GPIOToggle(gpio_t pin)
-{
-	Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin);
+void GPIOToggle(gpio_t pin) {
+	Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, gpio[pin].gpioPort,
+			gpio[pin].gpioPin);
 }
 
-bool GPIORead(gpio_t pin)
-{
-	return(Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, gpio[pin].gpioPort, gpio[pin].gpioPin));
+bool GPIORead(gpio_t pin) {
+	return (Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, gpio[pin].gpioPort,
+			gpio[pin].gpioPin));
 }
 
-void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, bool edge)
-{
+void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, bool edge) {
 	ptr_GPIO_int_func[gp] = ptr_int_func;
 
 	Chip_SCU_GPIOIntPinSel(gp, gpio[pin].gpioPort, gpio[pin].gpioPin); /* Configura el canal de la interrupcion*/
 
 	Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Limpia el estado de la interrupcion*/
 	Chip_PININT_SetPinModeEdge(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion por flanco*/
-	if(edge)
+	if (edge)
 		Chip_PININT_EnableIntHigh(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion cuando el flanco es ascendente*/
 	else
 		Chip_PININT_EnableIntLow(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion cuando el flanco es descendente*/
 
-	NVIC_ClearPendingIRQ(32+gp); /* Limpia la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
-	NVIC_EnableIRQ(32+gp); /* Habilita la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
+	NVIC_ClearPendingIRQ(32 + gp); /* Limpia la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
+	NVIC_EnableIRQ(32 + gp); /* Habilita la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
 }
 
-void GPIOActivGroupInt(gpiogroupgp_t group_gp, gpio_t *pins, uint8_t n_pins, void *ptr_int_func, bool edge)
-{
+void GPIOActivGroupInt(gpiogroupgp_t group_gp, gpio_t *pins, uint8_t n_pins,
+		void *ptr_int_func, bool edge) {
 	uint8_t i;
 	ptr_GPIO_group_int_func[group_gp] = ptr_int_func;
 	Chip_GPIOGP_SelectOrMode(LPC_GPIOGROUP, group_gp); /* Cualquier GPIO dispara la interrupcion*/
 	Chip_GPIOGP_SelectEdgeMode(LPC_GPIOGROUP, group_gp); /* Interrupcion por flanco*/
 	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, group_gp); /* Limpia el estado de la interrupcion*/
-	for(i=1 ; i<n_pins ; i++)
-	{
-		if(edge)
-			Chip_GPIOGP_SelectHighLevel(LPC_GPIOGROUP, group_gp, gpio[pins[i]].gpioPort, 1<<gpio[pins[i]].gpioPin);/* Interrupcion por nivel alto*/
+	for (i = 1; i < n_pins; i++) {
+		if (edge)
+			Chip_GPIOGP_SelectHighLevel(LPC_GPIOGROUP, group_gp,
+					gpio[pins[i]].gpioPort, 1 << gpio[pins[i]].gpioPin);/* Interrupcion por nivel alto*/
 		else
-			Chip_GPIOGP_SelectLowLevel(LPC_GPIOGROUP, group_gp, gpio[pins[i]].gpioPort, 1<<gpio[pins[i]].gpioPin);/* Interrupcion por nivel bajo*/
-		Chip_GPIOGP_EnableGroupPins(LPC_GPIOGROUP, group_gp, gpio[pins[i]].gpioPort, 1<<gpio[pins[i]].gpioPin); /* Habilita el pin para la interrupcion de grupo*/
+			Chip_GPIOGP_SelectLowLevel(LPC_GPIOGROUP, group_gp,
+					gpio[pins[i]].gpioPort, 1 << gpio[pins[i]].gpioPin);/* Interrupcion por nivel bajo*/
+		Chip_GPIOGP_EnableGroupPins(LPC_GPIOGROUP, group_gp,
+				gpio[pins[i]].gpioPort, 1 << gpio[pins[i]].gpioPin); /* Habilita el pin para la interrupcion de grupo*/
 	}
-    NVIC_EnableIRQ(40+group_gp); /* Habilita la interrupcion de GINTn_IRQn definido en cmsis_43xx.h*/
+	NVIC_EnableIRQ(40 + group_gp); /* Habilita la interrupcion de GINTn_IRQn definido en cmsis_43xx.h*/
 }
 
 void GPIO0_IRQHandler(void) //32
@@ -285,8 +287,7 @@ void GINT1_IRQHandler(void) // 41
 	ptr_GPIO_group_int_func[GPIOGROUPGP1]();
 }
 
-void GPIODeinit(void)
-{
+void GPIODeinit(void) {
 	Chip_GPIO_DeInit(LPC_GPIO_PORT);
 }
 
