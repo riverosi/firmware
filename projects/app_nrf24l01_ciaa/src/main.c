@@ -111,7 +111,6 @@ void SysTick_Handler(void) {
 #if asTX
 		GPIOToggle(LEDRGB_R);
 		Nrf24TxTick();
-		cnt = 0;
 #endif
 		GPIOToggle(CIAA_DO7);
 		cnt = 0;
@@ -163,7 +162,7 @@ int main(void) {
 
 	if (Nrf24Init(&RX) == NRF24_SUCCESS) {
 			GPIOOn(CIAA_DO3);
-			StopWatch_DelayMs(500);
+			StopWatch_DelayMs(1000);
 			GPIOOff(CIAA_DO3);
 	}
 	/* Enable ack payload */

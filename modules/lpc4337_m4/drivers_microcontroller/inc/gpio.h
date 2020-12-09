@@ -114,7 +114,16 @@ typedef enum {
 	CIAA_DI7,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
 
 } gpio_t;
-
+/**
+ * @typedef gpiogp_t
+ * @brief Pin interrupt mode
+ */
+typedef enum {
+	IRQ_EDGE_RISE,
+	IRQ_EDGE_FALL,
+	IRQ_LEVEL_HIGH,
+	IRQ_LEVEL_LOW
+} gpioPinIrq_t;
 /** @typedef gpiogp_t
  * @brief Define los grupos de interrupciones
  */
@@ -189,9 +198,9 @@ Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT, PININTCH(gp))
  * @param[in] gp Indica a que grupo de interrupciones se asigna al pin
  * @param[in] pin Pin que va a interrumpir
  * @param[in] void *ptr_int_func Funcion a la que se va a llamar en la interrupcion
- * @param[in] bool edge 1 si es flanco ascendente y 0 si es descendente
+ * @param[in] gpioPinIrq_t edge pin interruption
  */
-void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, bool edge);
+void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, gpioPinIrq_t edge);
 
 /** @brief Activate group interrupts and add to the interruption the chosen gpio through the vector
  * @param[in] group_gp

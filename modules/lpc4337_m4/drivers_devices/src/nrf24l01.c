@@ -755,7 +755,7 @@ void Nrf24PrimaryDevISRConfig(nrf24l01_t *nrf24){
 	//GpioConfig(&nrf24->irq);
 	//GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24PrimaryDevISR);
 	GPIOInit( nrf24->irq , GPIO_INPUT);
-	GPIOActivInt( GPIOGP0 , nrf24->irq , Nrf24PrimaryDevISR , 0);
+	GPIOActivInt( GPIOGP0 , nrf24->irq , Nrf24PrimaryDevISR , IRQ_LEVEL_LOW);
 
 }
 
@@ -765,7 +765,7 @@ void Nrf24SecondaryDevISRConfig(nrf24l01_t *nrf24){
 	//GpioConfig(&nrf24->irq);
 	//GpioInterruptConfig(&nrf24->irq, GPIO_IRQ_LEVEL_LOW, nrf24->pin_int_num, Nrf24SecondaryDevISR);
 	GPIOInit( nrf24->irq , GPIO_INPUT);
-	GPIOActivInt( GPIOGP1 , nrf24->irq , Nrf24SecondaryDevISR , 0);
+	GPIOActivInt( GPIOGP1 , nrf24->irq , Nrf24SecondaryDevISR , IRQ_LEVEL_LOW);
 }
 
 void Nrf24PrimaryDevISR(){

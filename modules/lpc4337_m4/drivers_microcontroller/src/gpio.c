@@ -210,17 +210,36 @@ bool GPIORead(gpio_t pin) {
 			gpio[pin].gpioPin));
 }
 
-void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, bool edge) {
+void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, gpioPinIrq_t edge) {
 	ptr_GPIO_int_func[gp] = ptr_int_func;
 
 	Chip_SCU_GPIOIntPinSel(gp, gpio[pin].gpioPort, gpio[pin].gpioPin); /* Configura el canal de la interrupcion*/
 
 	Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Limpia el estado de la interrupcion*/
-	Chip_PININT_SetPinModeEdge(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion por flanco*/
-	if (edge)
+
+	switch (edge) {
+	case IRQ_EDGE_RISE:
+		Chip_PININT_SetPinModeEdge(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion por flanco*/
 		Chip_PININT_EnableIntHigh(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion cuando el flanco es ascendente*/
-	else
+		break;
+	case IRQ_EDGE_FALL:
+		Chip_PININT_SetPinModeEdge(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion por flanco*/
 		Chip_PININT_EnableIntLow(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion cuando el flanco es descendente*/
+		break;
+	case IRQ_LEVEL_HIGH:
+		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT , PININTCH(gp)); /* Level sensitive */
+		LPC_GPIO_PIN_INT->SIENR=PININTCH(gp); //Enable rising-edge  | Enable level sensitive
+		LPC_GPIO_PIN_INT-> SIENF=PININTCH(gp);//Enable falling-edge | Select HIGH active (for level sensitive mode)
+		break;
+	case IRQ_LEVEL_LOW:
+		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT , PININTCH(gp)); /* Level sensitive */
+		LPC_GPIO_PIN_INT->SIENR=PININTCH(gp); //Enable rising-edge (for edge sensitive mode)  | Enable level sensitive
+		LPC_GPIO_PIN_INT->CIENF=PININTCH(gp); //Diable falling-edge (for edge sensitive mode) | Select LOW active (for level sensitive mode)
+		break;
+		default:
+			break;
+	}
+
 
 	NVIC_ClearPendingIRQ(32 + gp); /* Limpia la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
 	NVIC_EnableIRQ(32 + gp); /* Habilita la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/

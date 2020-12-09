@@ -41,7 +41,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-PROJECT = projects/app_nrf24l01_ciaa
+PROJECT = projects/test_interruption
 TARGET = lpc4337_m4
 BOARD = edu_ciaa_nxp
 #-------------------------------------------------------------------------------
