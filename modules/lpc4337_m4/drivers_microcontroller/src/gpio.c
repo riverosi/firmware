@@ -142,9 +142,28 @@ const digitalIO gpio[] = { { 0x01, 0x00, 0x00, 0x04, MD_PUP | MD_EZI | MD_ZI
 { 0x04, 0x00, 0x02, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL0*/
 { 0x04, 0x02, 0x02, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL2*/
 { 0x04, 0x03, 0x02, 0x03, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL3*/
-{ 0x07, 0x00, 0x03, 0x08, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO2*/
-{ 0x06, 0x07, 0x05, 0x0F, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO3*/
-{ 0x06, 0x03, 0x03, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO7*/
+/* CIAA GPIOS*/
+{ 0x02, 0x05, 0x05, 0x05, FUNC4 }, /* Configuration CIAA_GPIO1*/
+{ 0x06, 0x07, 0x05, 0x0F, FUNC4 }, /* Configuration CIAA_GPIO3*/
+{ 0x06, 0x01, 0x03, 0x00, FUNC0 }, /* Configuration CIAA_GPIO0*/
+
+{ 2, 1, 5, 1, FUNC4 },   //  8   DO0     BORN_14   DOUT0
+{ 4, 6, 2, 6, FUNC0 },   //  9   DO1     BORN_06   DOUT1
+{ 4, 5, 2, 5, FUNC0 },   // 10   DO2     BORN_08   DOUT2
+{ 4, 4, 2, 4, FUNC0 },   // 11   DO3     BORN_10   DOUT3
+{ 4, 8, 5,12, FUNC4 },   // 12   DO4     BORN_14   DOUT4
+{ 4, 9, 5,13, FUNC4 },   // 13   DO5     BORN_15   DOUT5
+{ 4,10, 5,14, FUNC4 },   // 14   DO6     BORN_16   DOUT6
+{ 1, 5, 1, 8, FUNC0 },   // 15   DO7     BORN_17   DOUT7
+
+{ 4, 0, 2, 0 , FUNC0},   //  0   DI0     BORN_24   DIN0
+{ 4, 1, 2, 1 , FUNC0},   //  1   DI1     BORN_25   DIN1
+{ 4, 2, 2, 2 , FUNC0},   //  2   DI2     BORN_26   DIN2
+{ 4, 3, 2, 3 , FUNC0},   //  3   DI3     BORN_27   DIN3
+{ 7, 3, 3,11 , FUNC0},   //  4   DI4     BORN_28   DIN4
+{ 7, 4, 3,12 , FUNC0},   //  5   DI5     BORN_29   DIN5
+{ 7, 5, 3,13 , FUNC0},   //  6   DI6     BORN_30   DIN6
+{ 7, 6, 3,14 , FUNC0}    //  7   DI7     BORN_31   DIN7
 
 };
 

@@ -47,11 +47,10 @@
 #include "chip.h"
 
 /*==================[macros and definitions]=================================*/
-uint16_t counter_systick=0;
-uint8_t buffer_uart[] = {128,255,0,0,1,1,127,127,0,0,1,1,255,255,127,127,0,0};
+uint16_t counter_systick = 0;
+uint8_t buffer_uart[] = { 128, 255, 0, 0, 1, 1, 127, 127, 0, 0, 1, 1, 255, 255,
+		127, 127, 0, 0 };
 /*==================[internal data definition]===============================*/
-
-
 
 /*==================[internal functions declaration]=========================*/
 
@@ -59,33 +58,54 @@ uint8_t buffer_uart[] = {128,255,0,0,1,1,127,127,0,0,1,1,255,255,127,127,0,0};
 
 /*==================[external functions definition]==========================*/
 
-
 //---------------------------------------------------------------------------------------------------
 /*Sistick Handler*/
-void  SysTick_Handler(void){
+void SysTick_Handler(void) {
 	counter_systick++;
-	if (counter_systick==500){
-		GPIOToggle(LED1);
+	if (counter_systick % 1000 == 0) {
 		Chip_UART_SendBlocking(USB_UART, buffer_uart, sizeof(buffer_uart));
-		Chip_UART_SendBlocking(USB_UART,"\n",1);
-		counter_systick=0;
+		Chip_UART_SendBlocking(USB_UART, "\n", 1);
+		GPIOToggle(CIAA_DO7);
 	}
 }
 //---------------------------------------------------------------------------------------------------
-int main(void)
-{
+int main(void) {
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
-	LedsInit();
-	LedOff(LED1);
-	SysTick_Config(SystemCoreClock/1000);/*llamada systick cada 1ms*/
-	 while(TRUE){
-		__WFI ();
+	Init_Uart_Ftdi(115200);
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+	}
+	GPIOInit(CIAA_GPIO1, GPIO_OUTPUT);
+	GPIOInit(CIAA_GPIO3, GPIO_OUTPUT);
+	GPIOInit(CIAA_GPIO0, GPIO_OUTPUT);
+
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
+	SysTick_Config(SystemCoreClock / 1000);/*llamada systick cada 1ms*/
+	while (TRUE) {
+		while (ReadByte_Uart_Ftdi(&var)) {
+			if (var == '4') {
+				GPIOToggle(CIAA_DO4);
+				GPIOToggle(CIAA_GPIO1);
+			}
+			if (var == '5') {
+				GPIOToggle(CIAA_DO5);
+				GPIOToggle(CIAA_GPIO3);
+			}
+			if (var == '6') {
+				GPIOToggle(CIAA_DO6);
+				GPIOToggle(CIAA_GPIO0);
+			}
+
+		}
+		__WFI();
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
-	   por ningun S.O. */
+	 por ningun S.O. */
 
 	return 0;
 }

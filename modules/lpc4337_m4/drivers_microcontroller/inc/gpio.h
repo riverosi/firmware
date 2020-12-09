@@ -93,9 +93,26 @@ typedef enum {
 	T_FIL0, /**< Mapeo GPIO2[2] en P4_0 */
 	T_FIL2, /**< Mapeo GPIO2[2] en P4_2 */
 	T_FIL3, /**< Mapeo GPIO2[3] en P4_3 */
-	CIAA_GPIO2, /**< Mapeo para CIAA Board GPIO3[8] en P7_0 */
+	CIAA_GPIO1, /**< Mapeo para CIAA Board GPIO3[8] en P7_0 */
 	CIAA_GPIO3, /**< Mapeo para CIAA Board GPIO5[15] en P6_7 */
-	CIAA_GPIO7 /**< Mapeo para CIAA Board GPIO3[2] en P6_3 */
+	CIAA_GPIO0, /**< Mapeo para CIAA Board GPIO3[2] en P6_3 */
+	CIAA_DO0,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO1,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO2,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO3,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO4,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO5,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO6,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DO7,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI0,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI1,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI2,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI3,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI4,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI5,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI6,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+	CIAA_DI7,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
+
 } gpio_t;
 
 /** @typedef gpiogp_t

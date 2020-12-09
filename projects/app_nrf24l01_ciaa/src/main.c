@@ -92,8 +92,8 @@
 #include "chip.h"
 /*==================[Definitions]=============================================*/
 /* Change 1 to activate */
-#define asTX 1
-#define asRX 0
+#define asTX 0
+#define asRX 1
 
 /*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void) {
@@ -113,7 +113,8 @@ void SysTick_Handler(void) {
 		Nrf24TxTick();
 		cnt = 0;
 #endif
-
+		GPIOToggle(CIAA_DO7);
+		cnt = 0;
 	}
 	cnt++;
 }
@@ -147,16 +148,24 @@ int main(void) {
 #endif
 
 #if asRX
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
 	nrf24l01_t RX;
 	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = T_FIL0;
-	RX.ce = T_FIL2;
-	RX.irq = T_FIL3;
+	RX.cs = CIAA_GPIO0;
+	RX.ce = CIAA_GPIO3;
+	RX.irq = CIAA_GPIO1;
 	RX.mode = PRX;
 	RX.en_ack_pay = TRUE;
 
-	Nrf24Init(&RX);
-
+	if (Nrf24Init(&RX) == NRF24_SUCCESS) {
+			GPIOOn(CIAA_DO3);
+			StopWatch_DelayMs(500);
+			GPIOOff(CIAA_DO3);
+	}
 	/* Enable ack payload */
 	Nrf24EnableFeatureAckPL(&RX);
 
@@ -178,9 +187,9 @@ int main(void) {
 
 	while (TRUE) {
 
-		key = Read_Switches();
-
 #if asTX
+
+		key = Read_Switches();
 		snd_to_PRX[0] = key;
 
 #endif
@@ -188,19 +197,19 @@ int main(void) {
 #if asRX
 		/* Turns on led associated with button if data is received from PTX */
 		if(rcv_fr_PTX[0]==1) {
-			GPIOOn(LED1);
+			GPIOOn(CIAA_DO4);
 			StopWatch_DelayMs(100);
-			GPIOOff(LED1);
+			GPIOOff(CIAA_DO4);
 		}
 		if(rcv_fr_PTX[0]==2) {
-			GPIOOn(LED2);
+			GPIOOn(CIAA_DO5);
 			StopWatch_DelayMs(100);
-			GPIOOff(LED2);
+			GPIOOff(CIAA_DO5);
 		}
 		if(rcv_fr_PTX[0]==4) {
-			GPIOOn(LED3);
+			GPIOOn(CIAA_DO6);
 			StopWatch_DelayMs(100);
-			GPIOOff(LED3);
+			GPIOOff(CIAA_DO6);
 		}
 
 #endif
