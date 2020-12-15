@@ -92,17 +92,17 @@
 #include "chip.h"
 /*==================[Definitions]=============================================*/
 /* Change 1 to activate */
-#define asTX 1
-#define asRX 0
+#define asTX 0
+#define asRX 1
 
 /*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
+	Init_Uart_Ftdi(115200);
 }
 /*==================[SystickHandler]=============================================*/
-static uint32_t cnt = 0;
+uint32_t cnt = 0;
 void SysTick_Handler(void) {
 
 
@@ -111,9 +111,9 @@ void SysTick_Handler(void) {
 #if asTX
 		GPIOToggle(LEDRGB_R);
 		Nrf24TxTick();
-		cnt = 0;
 #endif
-
+		GPIOToggle(LEDRGB_R);
+		cnt = 0;
 	}
 	cnt++;
 }
@@ -123,11 +123,11 @@ int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
-
-	/*	Select mode of NRF	*/
-#if asTX
 	Init_Switches();
 	Init_Leds();
+	/*	Select mode of NRF	*/
+#if asTX
+
 	nrf24l01_t TX;
 	TX.spi.cfg = nrf24l01_spi_default_cfg;
 	TX.cs = GPIO1;
@@ -136,22 +136,25 @@ int main(void) {
 	TX.mode = PTX;
 	TX.en_ack_pay = TRUE;
 
-	if (Nrf24Init(&TX) == NRF24_SUCCESS) {
-		GPIOOn(LED3);
-	}
+	Nrf24Init(&TX);
 	/* Enable ack payload */
 	Nrf24EnableFeatureAckPL(&TX);
 
 	Nrf24PrimaryDevISRConfig(&TX);
 
+	uint8_t tx_config = Nrf24RegisterRead8(&TX , NRF24_CONFIG);
 #endif
 
 #if asRX
+
 	nrf24l01_t RX;
 	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = T_FIL0;
-	RX.ce = T_FIL2;
-	RX.irq = T_FIL3;
+	RX.cs = GPIO1;
+	RX.ce = GPIO3;
+	RX.irq = GPIO5;
+//	RX.cs = T_FIL0;
+//	RX.ce = T_FIL2;
+//	RX.irq = T_FIL3;
 	RX.mode = PRX;
 	RX.en_ack_pay = TRUE;
 
@@ -167,6 +170,8 @@ int main(void) {
 	/* Enable RX mode */
 	Nrf24EnableRxMode(&RX);
 	Nrf24SecondaryDevISRConfig(&RX); // GPIO5_IRQHandler
+
+	uint8_t rx_config = Nrf24RegisterRead8(&RX , NRF24_CONFIG);
 
 #endif
 

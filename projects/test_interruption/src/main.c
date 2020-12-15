@@ -61,12 +61,22 @@
 #include "../../test_interruption/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include "led.h"
-void interruption_tec_1(void){
-	GPIOToggle(LEDRGB_R);
-}
 void interruption_tec_2(void){
-	GPIOToggle(LEDRGB_B);
+	GPIOToggle(LED1);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED1);
 }
+void interruption_tec_3(void){
+	GPIOToggle(LED2);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED2);
+}
+void interruption_tec_4(void){
+	GPIOToggle(LED3);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED3);
+}
+
 int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
@@ -75,11 +85,14 @@ int main(void) {
 	Init_Uart_Ftdi(115200);
 	Init_Leds();
 
-	GPIOInit(TEC_3, GPIO_INPUT);
-	GPIOActivInt( GPIOGP0 , TEC_3 , interruption_tec_1 , IRQ_EDGE_FALL);
-
 	GPIOInit(TEC_2, GPIO_INPUT);
-	GPIOActivInt( GPIOGP1 , TEC_2 , interruption_tec_2, IRQ_LEVEL_LOW);
+	GPIOActivInt( GPIOGP0 , TEC_2 , interruption_tec_2 , IRQ_EDGE_FALL);
+
+	GPIOInit(TEC_3, GPIO_INPUT);
+	GPIOActivInt( GPIOGP1 , TEC_3 , interruption_tec_3, IRQ_EDGE_RISE);
+
+	GPIOInit(TEC_4, GPIO_INPUT);
+	GPIOActivInt( GPIOGP2 , TEC_4 , interruption_tec_4, IRQ_LEVEL_LOW);
 
 	while (TRUE) {
 		__WFI();

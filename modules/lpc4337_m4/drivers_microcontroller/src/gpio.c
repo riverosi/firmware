@@ -148,22 +148,22 @@ const digitalIO gpio[] = { { 0x01, 0x00, 0x00, 0x04, MD_PUP | MD_EZI | MD_ZI
 { 0x06, 0x01, 0x03, 0x00, FUNC0 }, /* Configuration CIAA_GPIO0*/
 
 { 2, 1, 5, 1, FUNC4 },   //  8   DO0     BORN_14   DOUT0
-{ 4, 6, 2, 6, FUNC0 },   //  9   DO1     BORN_06   DOUT1
-{ 4, 5, 2, 5, FUNC0 },   // 10   DO2     BORN_08   DOUT2
-{ 4, 4, 2, 4, FUNC0 },   // 11   DO3     BORN_10   DOUT3
-{ 4, 8, 5,12, FUNC4 },   // 12   DO4     BORN_14   DOUT4
-{ 4, 9, 5,13, FUNC4 },   // 13   DO5     BORN_15   DOUT5
-{ 4,10, 5,14, FUNC4 },   // 14   DO6     BORN_16   DOUT6
-{ 1, 5, 1, 8, FUNC0 },   // 15   DO7     BORN_17   DOUT7
+		{ 4, 6, 2, 6, FUNC0 },   //  9   DO1     BORN_06   DOUT1
+		{ 4, 5, 2, 5, FUNC0 },   // 10   DO2     BORN_08   DOUT2
+		{ 4, 4, 2, 4, FUNC0 },   // 11   DO3     BORN_10   DOUT3
+		{ 4, 8, 5, 12, FUNC4 },   // 12   DO4     BORN_14   DOUT4
+		{ 4, 9, 5, 13, FUNC4 },   // 13   DO5     BORN_15   DOUT5
+		{ 4, 10, 5, 14, FUNC4 },   // 14   DO6     BORN_16   DOUT6
+		{ 1, 5, 1, 8, FUNC0 },   // 15   DO7     BORN_17   DOUT7
 
-{ 4, 0, 2, 0 , FUNC0},   //  0   DI0     BORN_24   DIN0
-{ 4, 1, 2, 1 , FUNC0},   //  1   DI1     BORN_25   DIN1
-{ 4, 2, 2, 2 , FUNC0},   //  2   DI2     BORN_26   DIN2
-{ 4, 3, 2, 3 , FUNC0},   //  3   DI3     BORN_27   DIN3
-{ 7, 3, 3,11 , FUNC0},   //  4   DI4     BORN_28   DIN4
-{ 7, 4, 3,12 , FUNC0},   //  5   DI5     BORN_29   DIN5
-{ 7, 5, 3,13 , FUNC0},   //  6   DI6     BORN_30   DIN6
-{ 7, 6, 3,14 , FUNC0}    //  7   DI7     BORN_31   DIN7
+		{ 4, 0, 2, 0, FUNC0 },   //  0   DI0     BORN_24   DIN0
+		{ 4, 1, 2, 1, FUNC0 },   //  1   DI1     BORN_25   DIN1
+		{ 4, 2, 2, 2, FUNC0 },   //  2   DI2     BORN_26   DIN2
+		{ 4, 3, 2, 3, FUNC0 },   //  3   DI3     BORN_27   DIN3
+		{ 7, 3, 3, 11, FUNC0 },   //  4   DI4     BORN_28   DIN4
+		{ 7, 4, 3, 12, FUNC0 },   //  5   DI5     BORN_29   DIN5
+		{ 7, 5, 3, 13, FUNC0 },   //  6   DI6     BORN_30   DIN6
+		{ 7, 6, 3, 14, FUNC0 }    //  7   DI7     BORN_31   DIN7
 
 };
 
@@ -210,7 +210,8 @@ bool GPIORead(gpio_t pin) {
 			gpio[pin].gpioPin));
 }
 
-void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, gpioPinIrq_t edge) {
+void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func,
+		gpioPinIrq_t edge) {
 	ptr_GPIO_int_func[gp] = ptr_int_func;
 
 	Chip_SCU_GPIOIntPinSel(gp, gpio[pin].gpioPort, gpio[pin].gpioPin); /* Configura el canal de la interrupcion*/
@@ -227,19 +228,18 @@ void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func, gpioPinIrq_t edge
 		Chip_PININT_EnableIntLow(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Interrupcion cuando el flanco es descendente*/
 		break;
 	case IRQ_LEVEL_HIGH:
-		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT , PININTCH(gp)); /* Level sensitive */
-		LPC_GPIO_PIN_INT->SIENR=PININTCH(gp); //Enable rising-edge  | Enable level sensitive
-		LPC_GPIO_PIN_INT-> SIENF=PININTCH(gp);//Enable falling-edge | Select HIGH active (for level sensitive mode)
+		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Level sensitive */
+		LPC_GPIO_PIN_INT->SIENR = PININTCH(gp); //Enable rising-edge  | Enable level sensitive
+		LPC_GPIO_PIN_INT->SIENF = PININTCH(gp); //Enable falling-edge | Select HIGH active (for level sensitive mode)
 		break;
 	case IRQ_LEVEL_LOW:
-		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT , PININTCH(gp)); /* Level sensitive */
-		LPC_GPIO_PIN_INT->SIENR=PININTCH(gp); //Enable rising-edge (for edge sensitive mode)  | Enable level sensitive
-		LPC_GPIO_PIN_INT->CIENF=PININTCH(gp); //Diable falling-edge (for edge sensitive mode) | Select LOW active (for level sensitive mode)
+		Chip_PININT_SetPinModeLevel(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Level sensitive */
+		LPC_GPIO_PIN_INT->SIENR = PININTCH(gp); //Enable rising-edge (for edge sensitive mode)  | Enable level sensitive
+		LPC_GPIO_PIN_INT->CIENF = PININTCH(gp); //Diable falling-edge (for edge sensitive mode) | Select LOW active (for level sensitive mode)
 		break;
-		default:
-			break;
+	default:
+		break;
 	}
-
 
 	NVIC_ClearPendingIRQ(32 + gp); /* Limpia la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
 	NVIC_EnableIRQ(32 + gp); /* Habilita la interrupcion de PIN_INTX_IRQn definido en cmsis_43xx.h*/
