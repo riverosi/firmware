@@ -65,7 +65,21 @@
  * |         MISO        |    SPI_MISO   |
  *
  */
-
+/** @section wiring Wiring
+ * ##Transmitter - Reciber NRF24L01 ##
+ *
+ * | NRF24L01 pins (PTX) | CIAA pins |
+ * |:-------------------:|:-------------:|
+ * |         VCC         |    +3.3V      |
+ * |         GND         |    GND        |
+ * |         CSN         |    T_FIL0     |
+ * |         CE	         |    T_FIL2     |
+ * |         SCK         |    SPI_SCK    |
+ * |         MOSI        |    SPI_MOSI   |
+ * |         IRQ         |    T_FIL3     |
+ * |         MISO        |    SPI_MISO   |
+ *
+ */
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
@@ -77,8 +91,10 @@
 #include "systemclock.h"
 #include "chip.h"
 /*==================[Definitions]=============================================*/
-/* Change 1 to activate */
-#define asTX 0
+/*
+ * In this test connect two modules and debug
+ */
+#define asTX 1
 #define asRX 1
 
 /*==================[Init_Hardware]=============================================*/
@@ -86,14 +102,13 @@ void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(115200);
-	Init_Switches();
-	Init_Leds();
 }
 /*==================[SystickHandler]=============================================*/
 uint32_t cnt = 0;
 void SysTick_Handler(void) {
 
-	if (cnt == 200) {
+
+	if (cnt == 20) {
 
 #if asTX
 		GPIOToggle(LEDRGB_R);
@@ -102,7 +117,7 @@ void SysTick_Handler(void) {
 		GPIOToggle(LEDRGB_R);
 		cnt = 0;
 	}
-	cnt++;
+	cnt+=10;
 }
 
 int main(void) {
@@ -110,6 +125,8 @@ int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
+	Init_Switches();
+	Init_Leds();
 	/*	Select mode of NRF	*/
 #if asTX
 
@@ -134,9 +151,9 @@ int main(void) {
 
 	nrf24l01_t RX;
 	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = GPIO1;
-	RX.ce = GPIO3;
-	RX.irq = GPIO5;
+	RX.cs = T_FIL0;
+	RX.ce = T_FIL2;
+	RX.irq = T_FIL3;
 	RX.mode = PRX;
 	RX.en_ack_pay = TRUE;
 
@@ -147,47 +164,50 @@ int main(void) {
 
 	/* Set the first ack payload */
 	uint8_t first_ack[21] = "First ack received!!!";
-	Nrf24SetAckPayload(&RX, first_ack, 0x00, 21);
-	Nrf24SetAckPayload(&RX, first_ack, 0x01, 21);
+	Nrf24SetAckPayload(&RX,first_ack, 0x00, 21);
+
 	/* Enable RX mode */
 	Nrf24EnableRxMode(&RX);
-	Nrf24SecondaryDevISRConfig(&RX);
+	Nrf24SecondaryDevISRConfig(&RX); // GPIO5_IRQHandler
 
-	uint8_t rx_config = Nrf24RegisterRead8(&RX, NRF24_CONFIG);
+	uint8_t rx_config = Nrf24RegisterRead8(&RX , NRF24_CONFIG);
 
 #endif
 
-	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
+	SysTick_Config(SystemCoreClock / 100);/*call systick every 1ms*/
 
 	uint8_t key = 0;
+
+	//Variables
 
 	while (TRUE) {
 
 #if asTX
-
+		//Read state of switches and save in buffer for send to PRX
 		key = Read_Switches();
-
 		snd_to_PRX[0] = key;
-
 #endif
 
 #if asRX
 		/* Turns on led associated with button if data is received from PTX */
-		if (rcv_fr_PTX[0] == 1) {
+		if(rcv_fr_PTX[0]==1) {
 			GPIOOn(LED1);
-		}
-		if (rcv_fr_PTX[0] == 2) {
-			GPIOOn(LED2);
-		}
-		if (rcv_fr_PTX[0] == 4) {
-			GPIOOn(LED3);
-		}
-		if (rcv_fr_PTX[0] == 0) {
+			StopWatch_DelayMs(100);
 			GPIOOff(LED1);
+		}
+		if(rcv_fr_PTX[0]==2) {
+			GPIOOn(LED2);
+			StopWatch_DelayMs(100);
 			GPIOOff(LED2);
+		}
+		if(rcv_fr_PTX[0]==4) {
+			GPIOOn(LED3);
+			StopWatch_DelayMs(100);
 			GPIOOff(LED3);
 		}
+
 #endif
+
 		__WFI();
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */

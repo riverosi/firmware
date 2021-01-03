@@ -380,7 +380,7 @@ void Nrf24EnableFeatureAckPL(nrf24l01_t *nrf24) {
 			|| (0 == (internal_states[nrf24->spi.id] & INTERNAL_STATE_POWER_UP))) {
 		//  Enable dynpl for pipe0
 		Nrf24EnableFeatureDynPL(nrf24, 0x00);
-
+		Nrf24EnableFeatureDynPL(nrf24, 0x01);
 		//  Check whether retransmission delay is sufficient
 		data = Nrf24RegisterRead8(nrf24, NRF24_SETUP_RETR);
 
