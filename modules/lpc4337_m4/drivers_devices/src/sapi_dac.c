@@ -1,7 +1,8 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
+/* Copyright 2016, Ian Olivieri
+ * Copyright 2016, Eric Pernia.
  * All rights reserved.
  *
- * This file is part of CIAA Firmware.
+ * This file is part sAPI library for microcontrollers.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,62 +32,55 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
- **
- ** This is a mini example of the CIAA Firmware
- **
- **/
-
-/** \addtogroup CIAA_Firmware CIAA Firmware
- ** @{ */
-/** \addtogroup Examples CIAA Firmware Examples
- ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
- ** @{ */
-
-/*
- * Initials     Name
- * ---------------------------
- *
- */
-
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * yyyymmdd v0.0.1 initials initial version
- */
+/* Date: 2016-02-20 */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "switch.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "nrf24l01.h"
-#include "sapi_imu_mpu9250.h"
-#include "MadgwickAHRS.h"
+
 #include "sapi_dac.h"
+#include "chip.h"
+/*==================[macros and definitions]=================================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*==================[internal data declaration]==============================*/
 
-int main(void);
+/*==================[internal functions declaration]=========================*/
 
-/*==================[cplusplus]==============================================*/
+/*==================[internal data definition]===============================*/
 
-#ifdef __cplusplus
+/*==================[external data definition]===============================*/
+
+/*==================[internal functions definition]==========================*/
+
+/*==================[external functions definition]==========================*/
+
+/*
+ * @brief:  enable/disable the ADC and DAC peripheral
+ * @param:  DAC_ENABLE, DAC_DISABLE
+ * @return: none
+ */
+void dacInit() {
+	/* Initialize the DAC peripheral */
+	Chip_DAC_Init(LPC_DAC);
+	//Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
+	/* Set update rate to 400 KHz */
+	Chip_DAC_SetBias(LPC_DAC, DAC_MAX_UPDATE_RATE_400kHz);
+
+	/* Enables the DMA operation and controls DMA timer */
+	Chip_DAC_ConfigDAConverterControl(LPC_DAC, DAC_DMA_ENA);
+	/* DCAR DMA access */
+	/* Update value to DAC buffer*/
+	Chip_DAC_UpdateValue(LPC_DAC, 0);
 }
-#endif
 
-/*==================[external functions declaration]=========================*/
+/*
+ * @brief   Write a value in the DAC.
+ * @param   value: analog value to be writen in the DAC, from 0 to 1023
+ * @return  none
+ */
+void dacWrite(uint16_t value) {
+	if (value > 1023) {
+		value = 1023;
+	}
+	Chip_DAC_UpdateValue(LPC_DAC, value);
+}
 
 /*==================[end of file]============================================*/
-
-
-/*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
-

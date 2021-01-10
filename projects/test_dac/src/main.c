@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
+/** \brief Blinking Bare Metal example source file
  **
- ** This is a mini example of the CIAA Firmware
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
 
 /** \addtogroup CIAA_Firmware CIAA Firmware
  ** @{ */
+
 /** \addtogroup Examples CIAA Firmware Examples
  ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
+/** \addtogroup Baremetal Bare Metal example source file
  ** @{ */
 
 /*
@@ -59,34 +58,71 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "switch.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "nrf24l01.h"
-#include "sapi_imu_mpu9250.h"
-#include "MadgwickAHRS.h"
-#include "sapi_dac.h"
+#include "../../test_dac/inc/mi_proyecto.h"       /* <= own header */
+#include "systemclock.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int main(void);
-
-/*==================[cplusplus]==============================================*/
-
-#ifdef __cplusplus
+/*==================[internal data definition]===============================*/
+uint16_t counter_systick = 0;
+uint16_t counter_dac = 0;
+/*==================[internal functions declaration]=========================*/
+void SysTick_Handler(void) {
+	counter_systick++;
+	if (counter_systick == 500) {
+		GPIOToggle(LED3);
+		counter_systick = 0;
+	}
 }
-#endif
+/* Interruptions*/
+void interruption_tec_1(void) {
+	GPIOToggle(LED1);
+	StopWatch_DelayMs(100);
+	GPIOToggle(LED1);
+	if (counter_dac < 1024) {
+		counter_dac = counter_dac + 200;
+		dacWrite(counter_dac);
+	}
+}
+void interruption_tec_2(void) {
+	GPIOToggle(LED2);
+	StopWatch_DelayMs(100);
+	GPIOToggle(LED2);
+	if (counter_dac > 199) {
+		counter_dac = counter_dac - 200;
+		dacWrite(counter_dac);
+	}
+}
 
-/*==================[external functions declaration]=========================*/
 
+
+int main(void) {
+
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(460800);
+	Init_Leds();
+	dacInit();
+
+	GPIOInit(TEC_1, GPIO_INPUT);
+	GPIOActivInt(GPIOGP0, TEC_1, interruption_tec_1, IRQ_EDGE_FALL);
+	GPIOInit(TEC_2, GPIO_INPUT);
+	GPIOActivInt(GPIOGP1, TEC_2, interruption_tec_2, IRQ_EDGE_FALL);
+
+	SysTick_Config(SystemCoreClock / 1000);/*llamada systick cada 1ms*/
+
+	//Variables
+	while (TRUE) {
+		__WFI();
+	};
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
+
+	return 0;
+
+}
+
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
-
-
-/*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
 

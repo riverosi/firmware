@@ -49,7 +49,7 @@
  * Initials     Name
  * ---------------------------
  *
- */	
+ */
 
 /*
  * modification history (new versions first)
@@ -60,35 +60,37 @@
 /*==================[inclusions]=============================================*/
 #include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
+/*=====[Inclusions of function dependencies]=================================*/
 
+/*=====[Definition macros of private constants]==============================*/
 
+/*=====[Definitions of extern global variables]==============================*/
 
-int main(void)
-{ 
+/*=====[Definitions of public global variables]==============================*/
 
+/*=====[Definitions of private global variables]=============================*/
 
+/*=====[Main function, program entry point after power on or reset]==========*/
 
-   /* perform the needed initialization here */
+int main(void) {
+
+	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(460800);
 	LedsInit();
-	SysTick_Config(SystemCoreClock/1000);/*llamada systick cada 1ms*/
+	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
+	// ----- Repeat for ever -------------------------
+	while (TRUE) {
+		__WFI();
+	}
 
-
-
-
-    //Variables
-   
-	    
-	while(TRUE){
-			__WFI ();
-		};
-	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
 
 	return 0;
-
 
 }
 

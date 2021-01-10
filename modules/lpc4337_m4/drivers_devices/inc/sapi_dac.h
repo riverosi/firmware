@@ -1,7 +1,8 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
+/* Copyright 2016, Ian Olivieri
+ * Copyright 2016, Eric Pernia.
  * All rights reserved.
  *
- * This file is part of CIAA Firmware.
+ * This file is part sAPI library for microcontrollers.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,65 +29,38 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
- **
- ** This is a mini example of the CIAA Firmware
- **
- **/
+/* Date: 2016-02-20 */
 
-/** \addtogroup CIAA_Firmware CIAA Firmware
- ** @{ */
-/** \addtogroup Examples CIAA Firmware Examples
- ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
- ** @{ */
-
-/*
- * Initials     Name
- * ---------------------------
- *
- */
-
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * yyyymmdd v0.0.1 initials initial version
- */
+#ifndef _SAPI_DAC_H_
+#define _SAPI_DAC_H_
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "switch.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "nrf24l01.h"
-#include "sapi_imu_mpu9250.h"
-#include "MadgwickAHRS.h"
-#include "sapi_dac.h"
-
+#include "stdint.h"
+/*==================[c++]====================================================*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int main(void);
+/*==================[macros and definitions]=================================*/
 
-/*==================[cplusplus]==============================================*/
+/*==================[typedef]================================================*/
+typedef enum {
+   DAC_ENABLE, DAC_DISABLE
+} dacInit_t;
+/*==================[external data declaration]==============================*/
 
+/*==================[external functions declaration]=========================*/
+
+void dacInit();
+
+void dacWrite( uint16_t value );
+
+/*==================[c++]====================================================*/
 #ifdef __cplusplus
 }
 #endif
 
-/*==================[external functions declaration]=========================*/
-
 /*==================[end of file]============================================*/
-
-
-/*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
-
+#endif /* _SAPI_DAC_H_ */
