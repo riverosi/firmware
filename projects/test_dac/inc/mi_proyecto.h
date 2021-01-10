@@ -66,7 +66,7 @@
 #include "UART.h"
 #include "stopwatch.h"
 #include "bno055.h"
-
+#include "sapi_dac.h"
 
 #ifdef __cplusplus
 extern "C" {

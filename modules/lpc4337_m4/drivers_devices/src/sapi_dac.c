@@ -56,19 +56,32 @@
  * @brief:  enable/disable the ADC and DAC peripheral
  * @param:  DAC_ENABLE, DAC_DISABLE
  * @return: none
- */
-void dacInit() {
-	/* Initialize the DAC peripheral */
-	Chip_DAC_Init(LPC_DAC);
-	//Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
-	/* Set update rate to 400 KHz */
-	Chip_DAC_SetBias(LPC_DAC, DAC_MAX_UPDATE_RATE_400kHz);
+*/
+void dacInit( dacInit_t config )
+{
 
-	/* Enables the DMA operation and controls DMA timer */
-	Chip_DAC_ConfigDAConverterControl(LPC_DAC, DAC_DMA_ENA);
-	/* DCAR DMA access */
-	/* Update value to DAC buffer*/
-	Chip_DAC_UpdateValue(LPC_DAC, 0);
+   switch(config) {
+
+   case DAC_ENABLE:
+      /* Initialize the DAC peripheral */
+      Chip_DAC_Init(LPC_DAC);
+      //Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
+      /* Set update rate to 400 KHz */
+      Chip_DAC_SetBias(LPC_DAC, DAC_MAX_UPDATE_RATE_400kHz);
+
+      /* Enables the DMA operation and controls DMA timer */
+      Chip_DAC_ConfigDAConverterControl(LPC_DAC, DAC_DMA_ENA);
+      /* DCAR DMA access */
+      /* Update value to DAC buffer*/
+      Chip_DAC_UpdateValue(LPC_DAC, 0);
+      break;
+
+   case DAC_DISABLE:
+      /* Disable DAC peripheral */
+      Chip_DAC_DeInit( LPC_DAC );
+      break;
+   }
+
 }
 
 /*

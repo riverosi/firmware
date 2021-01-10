@@ -92,8 +92,6 @@ void interruption_tec_2(void) {
 	}
 }
 
-
-
 int main(void) {
 
 	/* perform the needed initialization here */
@@ -102,8 +100,7 @@ int main(void) {
 	StopWatch_Init();
 	Init_Uart_Ftdi(460800);
 	Init_Leds();
-	dacInit();
-
+	dacInit(DAC_ENABLE);
 	GPIOInit(TEC_1, GPIO_INPUT);
 	GPIOActivInt(GPIOGP0, TEC_1, interruption_tec_1, IRQ_EDGE_FALL);
 	GPIOInit(TEC_2, GPIO_INPUT);

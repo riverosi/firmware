@@ -53,7 +53,7 @@ typedef enum {
 
 /*==================[external functions declaration]=========================*/
 
-void dacInit();
+void dacInit(dacInit_t config);
 
 void dacWrite( uint16_t value );
 
