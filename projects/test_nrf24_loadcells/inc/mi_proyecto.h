@@ -60,12 +60,14 @@
 
 /*==================[inclusions]=============================================*/
 #include "led.h"
+#include "switch.h"
 #include "gpio.h"
-#include "MPU_9250.h"
 #include "fpu_init.h"
 #include "UART.h"
 #include "stopwatch.h"
-#include "bno055.h"
+#include "nrf24l01.h"
+#include "sapi_imu_mpu9250.h"
+#include "MadgwickAHRS.h"
 #include "sapi_dac.h"
 
 #ifdef __cplusplus
@@ -81,6 +83,8 @@ int main(void);
 #endif
 
 /*==================[external functions declaration]=========================*/
+
+/*==================[end of file]============================================*/
 
 
 /*==================[end of file]============================================*/
