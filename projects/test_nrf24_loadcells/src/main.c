@@ -89,15 +89,8 @@ void Init_Hardware(void) {
 	Init_Switches();
 	Init_Leds();
 }
-/**
- * @brief convert float in array of bytes
- * @param bytes_temp
- * @param float_variable
- */
-void float2Bytes(uint8_t *bytes_temp, float float_variable) {
-	memcpy(bytes_temp, (uint8_t*) (&float_variable), 4);
-}
-;
+
+
 /*==================[SystickHandler]=============================================*/
 uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -109,6 +102,8 @@ void SysTick_Handler(void) {
 		Nrf24TxTick();
 #endif
 		GPIOToggle(LEDRGB_R);
+
+		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame 0xFF
 		Chip_UART_SendBlocking(USB_UART, rcv_fr_PTX, sizeof(float));
 		cnt = 0;
 	}
@@ -186,13 +181,22 @@ int main(void) {
 #if asRX
 		/* Turns on led associated with button if data is received from PTX */
 		memcpy(&float_data, rcv_fr_PTX, sizeof(float_data));
-		if (float_data > 0.1) {
+
+		if (float_data > 0.2) {
 			GPIOOn(LED3);
 		} else {
 			GPIOOff(LED3);
 		}
-
-
+		if (float_data > 0.5) {
+			GPIOOn(LED2);
+		} else {
+			GPIOOff(LED2);
+		}
+		if (float_data > 1.0) {
+			GPIOOn(LED1);
+		} else {
+			GPIOOff(LED1);
+		}
 #endif
 		__WFI();
 	};

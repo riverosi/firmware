@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
+/** \brief Blinking Bare Metal example source file
  **
- ** This is a mini example of the CIAA Firmware
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
 
 /** \addtogroup CIAA_Firmware CIAA Firmware
  ** @{ */
+
 /** \addtogroup Examples CIAA Firmware Examples
  ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
+/** \addtogroup Baremetal Bare Metal example source file
  ** @{ */
 
 /*
@@ -59,35 +58,66 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "switch.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "nrf24l01.h"
-#include "sapi_imu_mpu9250.h"
-#include "MadgwickAHRS.h"
-#include "sapi_dac.h"
-#include "__angle_driver.h"
+#include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
+#include "systemclock.h"
+#include <stdlib.h>
+/*=====[Inclusions of function dependencies]=================================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*=====[Definition macros of private constants]==============================*/
+const uint32_t _ANGLE_I2C_CFG[1] = { 100000 };
 
-int main(void);
+/*=====[Definitions of extern global variables]==============================*/
 
-/*==================[cplusplus]==============================================*/
+/*=====[Definitions of public global variables]==============================*/
 
-#ifdef __cplusplus
+/*=====[Definitions of private global variables]=============================*/
+
+/*=====[Main function, program entry point after power on or reset]==========*/
+uint32_t cnt = 0;
+void SysTick_Handler(void) {
+	if (cnt == 500) {
+		GPIOToggle(LEDRGB_B);
+		cnt = 0;
+	}
+	cnt++;
 }
-#endif
+int main(void) {
 
-/*==================[external functions declaration]=========================*/
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	angle_i2cDriverInit(_ANGLE_I2C_CFG[0], 0x0C);
+	angle_setConfig(
+			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
+					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
+	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
+	uint16_t Angle;
+	char buffer_string[5];
+	// ----- Repeat for ever -------------------------
+	while (TRUE) {
+		Angle = angle_getAngle();
+		itoa((int)Angle, buffer_string, 10);
+		Chip_UART_SendBlocking(USB_UART, buffer_string, 5);
+		Chip_UART_SendBlocking(USB_UART, "\n", 1);
+		GPIOToggle(LEDRGB_G);
+		StopWatch_DelayMs(100);
 
+		__WFI();
+	}
+
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
+
+	return 0;
+
+}
+
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
-
-
-/*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
 
