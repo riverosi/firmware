@@ -90,7 +90,6 @@ void Init_Hardware(void) {
 	Init_Leds();
 }
 
-
 /*==================[SystickHandler]=============================================*/
 uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -180,23 +179,24 @@ int main(void) {
 
 #if asRX
 		/* Turns on led associated with button if data is received from PTX */
-		memcpy(&float_data, rcv_fr_PTX, sizeof(float_data));
+		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data));
 
-		if (float_data > 0.2) {
-			GPIOOn(LED3);
-		} else {
-			GPIOOff(LED3);
+		if (rcv_fr_PTX[0] == 0x01) {
+			if (float_data > 0.2) {
+				GPIOOn(LED1);
+			} else {
+				GPIOOff(LED1);
+			}
 		}
-		if (float_data > 0.5) {
-			GPIOOn(LED2);
-		} else {
-			GPIOOff(LED2);
+
+		if (rcv_fr_PTX[0] == 0x02) {
+			if (float_data > 0.2) {
+				GPIOOn(LED2);
+			} else {
+				GPIOOff(LED2);
+			}
 		}
-		if (float_data > 1.0) {
-			GPIOOn(LED1);
-		} else {
-			GPIOOff(LED1);
-		}
+
 #endif
 		__WFI();
 	};
