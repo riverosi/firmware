@@ -78,32 +78,18 @@
 #include "chip.h"
 /*==================[Definitions]=============================================*/
 /* Change 1 to activate */
-#define asTX 0
 #define asRX 1
 
 /*==================[Init_Hardware]=============================================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
-	Init_Switches();
-	Init_Leds();
-}
-
+void Init_Hardware(void);
+void print_serial_data(void);
 /*==================[SystickHandler]=============================================*/
 uint32_t cnt = 0;
 void SysTick_Handler(void) {
 
 	if (cnt == 10) {
-
-#if asTX
 		GPIOToggle(LEDRGB_R);
-		Nrf24TxTick();
-#endif
-		GPIOToggle(LEDRGB_R);
-
-		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame 0xFF
-		Chip_UART_SendBlocking(USB_UART, rcv_fr_PTX, sizeof(float));
+		print_serial_data();
 		cnt = 0;
 	}
 	cnt++;
@@ -114,25 +100,6 @@ int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
-	/*	Select mode of NRF	*/
-#if asTX
-
-	nrf24l01_t TX;
-	TX.spi.cfg = nrf24l01_spi_default_cfg;
-	TX.cs = GPIO1;
-	TX.ce = GPIO3;
-	TX.irq = GPIO5;
-	TX.mode = PTX;
-	TX.en_ack_pay = TRUE;
-
-	Nrf24Init(&TX);
-	/* Enable ack payload */
-	Nrf24EnableFeatureAckPL(&TX);
-
-	Nrf24PrimaryDevISRConfig(&TX);
-
-	uint8_t tx_config = Nrf24RegisterRead8(&TX , NRF24_CONFIG);
-#endif
 
 #if asRX
 
@@ -150,9 +117,11 @@ int main(void) {
 	Nrf24EnableFeatureAckPL(&RX);
 
 	/* Set the first ack payload */
-	uint8_t first_ack[21] = "First ack received!!!";
-	Nrf24SetAckPayload(&RX, first_ack, 0x00, 21);
-	Nrf24SetAckPayload(&RX, first_ack, 0x01, 21);
+	uint8_t first_ack[3] = "ok";
+	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32
+	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32
+	Nrf24SetAckPayload(&RX, first_ack, 0x00, 3); // Set ack payload in pipe 0
+	Nrf24SetAckPayload(&RX, first_ack, 0x01, 3); // Set ack payload in pipe 1
 	/* Enable RX mode */
 	Nrf24EnableRxMode(&RX);
 	Nrf24SecondaryDevISRConfig(&RX);
@@ -162,39 +131,30 @@ int main(void) {
 #endif
 
 	SysTick_Config(SystemCoreClock / 100);/*call systick every 10ms*/
-
-	uint8_t key = 0;
-
 	float float_data = 0.0f;
-
 	while (TRUE) {
-
-#if asTX
-
-		key = Read_Switches();
-
-		snd_to_PRX[0] = key;
-
-#endif
 
 #if asRX
 		/* Turns on led associated with button if data is received from PTX */
 		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data));
 
+		uint8_t rx_status = Nrf24GetInterruptStatus(&RX);
+
 		if (rcv_fr_PTX[0] == 0x01) {
 			if (float_data > 0.2) {
-				GPIOOn(LED1);
+				GPIOOn(LED3);
 			} else {
-				GPIOOff(LED1);
+				GPIOOff(LED3);
 			}
-		}
 
+		}
 		if (rcv_fr_PTX[0] == 0x02) {
 			if (float_data > 0.2) {
 				GPIOOn(LED2);
 			} else {
 				GPIOOff(LED2);
 			}
+
 		}
 
 #endif
@@ -203,6 +163,23 @@ int main(void) {
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
 
 	return 0;
+}
+// FUNCTIONS DECLARATIONS
+void Init_Hardware(void) {
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Switches();
+	Init_Leds();
+}
+
+void print_serial_data(void) {
+	/* Protocol Serial
+	 * lenght: 32 bytes
+	 * |0xFF|data_byte|....|data_byte|
+	 */
+	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame 0xFF
+	Chip_UART_SendBlocking(USB_UART, rcv_fr_PTX, sizeof(float));
 }
 
 /** @} doxygen end group definition */
