@@ -260,17 +260,13 @@ void Nrf24RegisterInit(nrf24l01_t *nrf24) {
 	//FIXME
 	//Nrf24RegisterWrite8(nrf24,NRF24_CONFIG,0x09);
 	Nrf24RegisterWrite8(nrf24, NRF24_CONFIG, NRF24_EN_CRC | NRF24_PRIM_RX);
-	//Nrf24RegisterWrite8(nrf24,NRF24_EN_AA,0x3F);
 	Nrf24RegisterWrite8(nrf24, NRF24_EN_AA,
 			NRF24_ENAA_P5 | NRF24_ENAA_P4 | NRF24_ENAA_P3 | NRF24_ENAA_P2
 					| NRF24_ENAA_P1 | NRF24_ENAA_P0);
-	//Nrf24RegisterWrite8(nrf24,NRF24_EN_RXADDR,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_EN_RXADDR, NRF24_ERX_P5 | NRF24_ERX_P4
 			| NRF24_ERX_P3 |NRF24_ERX_P2 | NRF24_ERX_P1 | NRF24_ERX_P0 );
-	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_AW,0x03);
 	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_AW, NRF24_AW_5BYTES);
-	//Nrf24RegisterWrite8(nrf24,NRF24_SETUP_RETR,0x03);
-	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x03); //ARD(Auto Retransmit Delay)|ARC(Auto Retransmit Count) 250 us | 3 retransmitions
+	Nrf24RegisterWrite8(nrf24, NRF24_SETUP_RETR, 0x00 | 0x05); //ARD(Auto Retransmit Delay) | ARC(Auto Retransmit Count) 250 us | 5 retransmitions
 	Nrf24RegisterWrite8(nrf24, NRF24_RF_CH, 0x02); // Set channel in 0x02
 	Nrf24RegisterWrite8(nrf24, NRF24_RF_SETUP, 0x0F); // Air data rate 2Mbps | max power output | setup LNA gain
 	Nrf24RegisterWrite8(nrf24, NRF24_STATUS, 0x70); // Clears interrupts RX_DR, TX_DS and MAX_RT
@@ -887,6 +883,7 @@ void Nrf24ReceiveDataISR(nrf24l01_t *nrf24, uint8_t *data) {
 		status = Nrf24GetData(nrf24, pipe_no, data, temp);
 
 	}
+	Nrf24ClearInterruptFlag(nrf24, INTERRUPT_DATA_SENT | INTERRUPT_MAX_RT);//FIXME: In revision! ¡¡¡¡WARNING!!!!
 }
 
 void Nrf24ReceiveDataACKPayISR(nrf24l01_t *nrf24, uint8_t *data,uint8_t *next_ack_pay, uint8_t ack_pay_len) {
@@ -916,6 +913,7 @@ void Nrf24ReceiveDataACKPayISR(nrf24l01_t *nrf24, uint8_t *data,uint8_t *next_ac
 	if (INTERRUPT_DATA_SENT & interrupt_flag) {
 		Nrf24ClearInterruptFlag(nrf24, INTERRUPT_DATA_SENT | INTERRUPT_MAX_RT);
 	}
+
 }
 
 void Nrf24TxTick(){

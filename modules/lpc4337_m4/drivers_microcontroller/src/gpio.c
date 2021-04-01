@@ -214,6 +214,8 @@ void GPIOActivInt(gpiogp_t gp, gpio_t pin, void *ptr_int_func,
 		gpioPinIrq_t edge) {
 	ptr_GPIO_int_func[gp] = ptr_int_func;
 
+	Chip_PININT_Init ( LPC_GPIO_PIN_INT );
+
 	Chip_SCU_GPIOIntPinSel(gp, gpio[pin].gpioPort, gpio[pin].gpioPin); /* Configura el canal de la interrupcion*/
 
 	Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT, PININTCH(gp)); /* Limpia el estado de la interrupcion*/
