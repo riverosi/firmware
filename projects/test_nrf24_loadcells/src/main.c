@@ -76,19 +76,35 @@
 #include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include "chip.h"
-
-/*==================[Definitions]=============================================*/
-
+/*==================[Definitions]============================================*/
 typedef struct {
-	float force_node; /*flag 0x01 in first byte payload*/
+	float force_node; /*flag 0x01 in first byte in payload*/
 	float time_node;
 	bool data_ready;
 } nrf24l01p_data;
+/*=====[Inclusions of function dependencies]=================================*/
 
-/*==================[Init_Hardware]=============================================*/
+/*=====[Definition macros of private constants]==============================*/
+
+/*=====[Definitions of extern global variables]==============================*/
+
+/*=====[Definitions of public global functions]==============================*/
 void Init_Hardware(void);
-void print_serial_data(void);
+void print_serial_data(float* data1, float* data2);
+void clear_array(void);
+/*=====[Definitions of public global variables]=============================*/
+/** Variable used for Systick Counter */
+static uint32_t cnt = 0;
+/*==================[SystickHandler]=========================================*/
 
+void SysTick_Handler(void) {
+	if (cnt == 50) {
+		GPIOToggle(LED3);
+		cnt = 0;
+	}
+	cnt++;
+}
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */
@@ -117,36 +133,33 @@ int main(void) {
 
 	while (TRUE) {
 
-		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data));
+		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
 
-		/*Pedal L*/
-		if (rcv_fr_PTX[0] == 0x01) {
+		if (rcv_fr_PTX[0] == 0x01) {/*Pedal L*/
 			RX_data[0].data_ready = true;
 			RX_data[0].force_node = float_data;
-			rcv_fr_PTX[0] = 0x00;
-			print_serial_data();
 			if (float_data > 0.2) {
 				GPIOOn(LEDRGB_R);
 			} else {
 				GPIOOff(LEDRGB_R);
 			}
-		} else {
-			RX_data[0].data_ready = false;/*Clear the data flags*/
 		}
-		/*Pedal R*/
-		if (rcv_fr_PTX[0] == 0x02) {
+		if (rcv_fr_PTX[0] == 0x02) {/*Pedal R*/
 			RX_data[1].data_ready = true;
 			RX_data[1].force_node = float_data;
-			rcv_fr_PTX[0] = 0x00;
 			if (float_data > 0.2) {
 				GPIOOn(LED1);
 			} else {
 				GPIOOff(LED1);
 			}
-		} else {
+		}
+		if (RX_data[1].data_ready && RX_data[0].data_ready) {
+			print_serial_data(&RX_data[0].force_node, &RX_data[1].force_node);
 			RX_data[0].data_ready = false;/*Clear the data flags*/
 			RX_data[1].data_ready = false;/*Clear the data flags*/
 		}
+
+		clear_array();
 
 		__WFI();
 	};
@@ -154,7 +167,7 @@ int main(void) {
 
 	return 0;
 }
-// FUNCTIONS DECLARATIONS
+/*=====[Declarations of public global functions]==============================*/
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
@@ -162,27 +175,18 @@ void Init_Hardware(void) {
 	Init_Switches();
 	Init_Leds();
 }
-
-void print_serial_data(void) {
+void print_serial_data(float* data1, float* data2) {
 	/* Protocol Serial
 	 * lenght: 32 bytes
 	 * |0xFF|data_byte|....|data_byte|
 	 */
 	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame 0xFF
-	Chip_UART_SendBlocking(USB_UART, &rcv_fr_PTX[1], sizeof(float));
+	Chip_UART_SendBlocking(USB_UART, data1, sizeof(float));
+	Chip_UART_SendBlocking(USB_UART, data2, sizeof(float));
 }
-
-/*==================[SystickHandler]=============================================*/
-static uint32_t cnt = 0;
-void SysTick_Handler(void) {
-
-	if (cnt == 50) {
-		GPIOToggle(LED3);
-		cnt = 0;
-	}
-	cnt++;
+void clear_array(void){
+	memset(rcv_fr_PTX, 0x00, 32);
 }
-
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
