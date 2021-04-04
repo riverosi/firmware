@@ -1,4 +1,4 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
+/* Copyright 2021, Riveros Ignacio
  * All rights reserved.
  *
  * This file is part of CIAA Firmware.
@@ -73,15 +73,19 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
+#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include "chip.h"
 /*==================[Definitions]============================================*/
+#define SISTICK_CALL_FREC	100  /*call SysTick every 10ms 1/100Hz*/
+
 typedef struct {
-	float force_node; /*flag 0x01 in first byte in payload*/
-	float time_node;
-	bool data_ready;
-} nrf24l01p_data;
+	float force_node; /** <= force in [Kg]*/
+	float time_node; /** <= time in [ms]*/
+	float battery_voltage; /** <= voltage in battery [Volts]*/
+	bool data_ready; /** <= data ready flag*/
+} nrf24l01p_pedal_data;
+
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
@@ -90,15 +94,23 @@ typedef struct {
 
 /*=====[Definitions of public global functions]==============================*/
 void Init_Hardware(void);
-void print_serial_data(float* data1, float* data2);
+void print_serial_data(nrf24l01p_pedal_data * rx_buffer);
 void clear_array(void);
+
 /*=====[Definitions of public global variables]=============================*/
-/** Variable used for Systick Counter */
-static uint32_t cnt = 0;
+/** Variable used for SysTick Counter */
+static  volatile uint32_t cnt = 0;
+/** Flag for print data in serial port*/
+static volatile bool flag_serial_data_print = FALSE;
 /*==================[SystickHandler]=========================================*/
 
 void SysTick_Handler(void) {
-	if (cnt == 50) {
+
+	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
+		flag_serial_data_print = TRUE;
+	}
+
+	if (cnt == 50) { /*LED3 toggle every 500 ms*/
 		GPIOToggle(LED3);
 		cnt = 0;
 	}
@@ -120,16 +132,18 @@ int main(void) {
 	RX.en_ack_pay = FALSE;
 
 	Nrf24Init(&RX);
-	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32
-	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32
+	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
+	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
 	Nrf24EnableRxMode(&RX); /* Enable RX mode */
-	Nrf24SecondaryDevISRConfig(&RX); /*Config ISR (only use one module in PRX mode on board)*/
+	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
 
-	SysTick_Config(SystemCoreClock / 100);/*call systick every 10ms*/
+	SysTick_Config(SystemCoreClock / 100);
+
 	float float_data = 0.0f;
-
-	nrf24l01p_data RX_data[2] = { 0 };
-
+	/* RX_data[0] Store Pedal Left data
+	 * RX_data[1] Store Pedal Rigth data
+	 */
+	nrf24l01p_pedal_data RX_data[2] = { 0 };
 
 	while (TRUE) {
 
@@ -153,10 +167,9 @@ int main(void) {
 				GPIOOff(LED1);
 			}
 		}
-		if (RX_data[1].data_ready && RX_data[0].data_ready) {
-			print_serial_data(&RX_data[0].force_node, &RX_data[1].force_node);
-			RX_data[0].data_ready = false;/*Clear the data flags*/
-			RX_data[1].data_ready = false;/*Clear the data flags*/
+		if (flag_serial_data_print) {
+			print_serial_data(RX_data);
+			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
 
 		clear_array();
@@ -175,18 +188,22 @@ void Init_Hardware(void) {
 	Init_Switches();
 	Init_Leds();
 }
-void print_serial_data(float* data1, float* data2) {
-	/* Protocol Serial
-	 * lenght: 32 bytes
-	 * |0xFF|data_byte|....|data_byte|
+void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
+	/* Protocol Serial:
+	 * length: 1 + 4*N bytes
+	 * |0xFF|4 x data_float|....|4 x data_float|
 	 */
-	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame 0xFF
-	Chip_UART_SendBlocking(USB_UART, data1, sizeof(float));
-	Chip_UART_SendBlocking(USB_UART, data2, sizeof(float));
+	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
+	Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
+	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
+			sizeof(float));
+	rx_buffer[0].force_node = FALSE;/*Clear the data flags*/
+	rx_buffer[1].force_node = FALSE;/*Clear the data flags*/
 }
-void clear_array(void){
-	memset(rcv_fr_PTX, 0x00, 32);
+void clear_array(void) {
+	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
 }
+
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
