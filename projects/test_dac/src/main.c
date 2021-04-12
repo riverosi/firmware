@@ -98,7 +98,6 @@ int main(void) {
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
 	Init_Leds();
 	dacInit(DAC_ENABLE);
 	GPIOInit(TEC_1, GPIO_INPUT);

@@ -61,12 +61,9 @@
 /*==================[inclusions]=============================================*/
 #include "led.h"
 #include "gpio.h"
-#include "MPU_9250.h"
 #include "fpu_init.h"
 #include "UART.h"
 #include "stopwatch.h"
-#include "bno055.h"
-#include "sapi_dac.h"
 #include "__angle_driver.h"
 #ifdef __cplusplus
 extern "C" {

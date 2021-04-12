@@ -58,7 +58,7 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "../../test_interruption/inc/mi_proyecto.h"       /* <= own header */
+#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include "led.h"
 void interruption_tec_2(void){

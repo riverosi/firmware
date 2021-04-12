@@ -54,10 +54,33 @@
 /*==================[inclusions]=============================================*/
 #include "systemclock.h"
 #include "chip.h"
+#include "bool.h"
 
 /*==================[macros and definitions]=================================*/
 
 /*==================[internal data declaration]==============================*/
+/* Structure for initial base clock states */
+struct CLK_BASE_STATES {
+	CHIP_CGU_BASE_CLK_T clk;	/* Base clock */
+	CHIP_CGU_CLKIN_T clkin;	/* Base clock source, see UM for allowable souorces per base clock */
+	bool autoblock_enab;/* Set to true to enable autoblocking on frequency change */
+	bool powerdn;		/* Set to true if the base clock is initially powered down */
+};
+
+/* Initial base clock states are mostly on */
+STATIC const struct CLK_BASE_STATES InitClkStates[] = {
+	{CLK_BASE_PHY_TX, CLKIN_ENET_TX, true, false},
+#if defined(USE_RMII)
+	{CLK_BASE_PHY_RX, CLKIN_ENET_TX, true, false},
+#else
+	{CLK_BASE_PHY_RX, CLKIN_ENET_RX, true, false},
+#endif
+
+	/* Clocks derived from dividers */
+	{CLK_BASE_LCD, CLKIN_IDIVC, true, false},
+	{CLK_BASE_USB1, CLKIN_IDIVD, true, true}
+};
+
 
 /*==================[internal functions declaration]=========================*/
 
@@ -68,13 +91,76 @@
 //const uint32_t OscRateIn = 12000000; /**< Frecuencia del oscilador externo incorporado en la CIAA-NXP. */
 
 /*==================[internal functions definition]==========================*/
+static void ciaaSetupCoreClock(CHIP_CGU_CLKIN_T clkin, uint32_t core_freq, bool setbase)
+{
+	int i;
+	volatile uint32_t delay = 500;
+	uint32_t direct = 0;
+	PLL_PARAM_T ppll;
 
+	if (clkin == CLKIN_CRYSTAL) {
+		/* Switch main system clocking to crystal */
+		Chip_Clock_EnableCrystal();
+	}
+	Chip_Clock_SetBaseClock(CLK_BASE_MX, clkin, true, false);
+	Chip_Clock_DisableMainPLL(); /* Disable PLL */
+
+	/* Calculate the PLL Parameters */
+	ppll.srcin = clkin;
+	Chip_Clock_CalcMainPLLValue(core_freq, &ppll);
+
+	if (core_freq > 110000000UL) {
+		if (!(ppll.ctrl & (1 << 7)) || ppll.psel) {
+			PLL_PARAM_T lpll;
+			/* Calculate the PLL Parameters */
+			lpll.srcin = clkin;
+			Chip_Clock_CalcMainPLLValue(110000000UL, &lpll);
+			Chip_Clock_SetupMainPLL(&lpll);
+			/* Wait for the PLL to lock */
+			while(!Chip_Clock_MainPLLLocked()) {}
+			Chip_Clock_SetBaseClock(CLK_BASE_MX, CLKIN_MAINPLL, true, false);
+			while(delay --){}
+			delay = 500;
+		} else {
+			direct = 1;
+			ppll.ctrl &= ~(1 << 7);
+		}
+	}
+
+	/* Setup and start the PLL */
+	Chip_Clock_SetupMainPLL(&ppll);
+
+	/* Wait for the PLL to lock */
+	while(!Chip_Clock_MainPLLLocked()) {}
+
+	/* Set core clock base as PLL1 */
+	Chip_Clock_SetBaseClock(CLK_BASE_MX, CLKIN_MAINPLL, true, false);
+
+	while(delay --){} /* Wait for approx 50 uSec */
+	if (direct) {
+		delay = 5000;
+		ppll.ctrl |= 1 << 7;
+		Chip_Clock_SetupMainPLL(&ppll); /* Set DIRECT to operate at full frequency */
+		while(delay --){} /* Wait for approx 50 uSec */
+	}
+
+	if (setbase) {
+		/* Setup system base clocks and initial states. This won't enable and
+		   disable individual clocks, but sets up the base clock sources for
+		   each individual peripheral clock. */
+		for (i = 0; i < (sizeof(InitClkStates) / sizeof(InitClkStates[0])); i++) {
+			Chip_Clock_SetBaseClock(InitClkStates[i].clk, InitClkStates[i].clkin,
+									InitClkStates[i].autoblock_enab, InitClkStates[i].powerdn);
+		}
+	}
+}
 /*==================[external functions definition]==========================*/
 
 void SystemClockInit(void)
 {
  	SystemCoreClockUpdate();
-	Chip_SetupXtalClocking();
+ 	Chip_SetupXtalClocking();
+ 	//ciaaSetupCoreClock(CLKIN_CRYSTAL, MAX_CLOCK_FREQ, true);
 }
 
 /*==================[end of file]============================================*/

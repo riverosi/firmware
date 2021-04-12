@@ -167,6 +167,7 @@ int main(void) {
 				GPIOOff(LED1);
 			}
 		}
+
 		if (flag_serial_data_print) {
 			print_serial_data(RX_data);
 			flag_serial_data_print = FALSE;/*Clear the flag*/
@@ -187,18 +188,22 @@ void Init_Hardware(void) {
 	Init_Uart_Ftdi(115200);
 	Init_Switches();
 	Init_Leds();
+	StopWatch_DelayMs(100);
 }
 void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	/* Protocol Serial:
 	 * length: 1 + 4*N bytes
 	 * |0xFF|4 x data_float|....|4 x data_float|
 	 */
-	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
-	Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
-	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
-			sizeof(float));
-	rx_buffer[0].force_node = FALSE;/*Clear the data flags*/
-	rx_buffer[1].force_node = FALSE;/*Clear the data flags*/
+	if (rx_buffer[0].data_ready && rx_buffer[1].data_ready) {
+		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
+		Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
+		Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
+				sizeof(float));
+		rx_buffer[0].data_ready = FALSE;/*Clear the data flags*/
+		rx_buffer[1].data_ready = FALSE;/*Clear the data flags*/
+	}
+
 }
 void clear_array(void) {
 	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros

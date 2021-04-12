@@ -69,19 +69,25 @@
 /*=====[Definitions of public global variables]==============================*/
 /** Variable used for SysTick Counter */
 static volatile uint32_t cnt = 0;
+/** Variable used for update dutyCycle */
 static volatile int dutyCycle_led1 = 0;
 /*=====[Definitions of private global variables]=============================*/
 void interruption_tec_2(void) {
+	/* Increment duty */
 	dutyCycle_led1 = dutyCycle_led1 + 8;
 	if (dutyCycle_led1 > 255) {
 		dutyCycle_led1 = 255;
 	}
 }
 void interruption_tec_3(void) {
+	/* Decrement duty */
 	dutyCycle_led1 = dutyCycle_led1 - 8;
 	if (dutyCycle_led1 < 0) {
 		dutyCycle_led1 = 0;
 	}
+}
+void interruption_tec_4(void){
+	dutyCycle_led1 = 0;
 }
 
 void SysTick_Handler(void) {
@@ -95,22 +101,22 @@ void SysTick_Handler(void) {
 }
 
 /*=====[Main function, program entry point after power on or reset]==========*/
-
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
 	Init_Leds();
-	pwmConfig(0, PWM_ENABLE);
+	pwmInit(0,PWM_ENABLE); // Enable pwm
 	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
 	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
 	GPIOInit(TEC_2, GPIO_INPUT);
 	GPIOActivInt(GPIOGP0, TEC_2, interruption_tec_2, IRQ_LEVEL_LOW);
 	GPIOInit(TEC_3, GPIO_INPUT);
 	GPIOActivInt(GPIOGP1, TEC_3, interruption_tec_3, IRQ_LEVEL_LOW);
+	GPIOInit(TEC_4, GPIO_INPUT);
+	GPIOActivInt(GPIOGP2, TEC_4, interruption_tec_4, IRQ_LEVEL_LOW);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {

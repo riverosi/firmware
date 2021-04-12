@@ -58,13 +58,13 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
+#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include <stdlib.h>
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-const uint32_t _ANGLE_I2C_CFG[1] = { 100000 };
+const uint32_t _ANGLE_I2C_CFG =  100000;
 
 /*=====[Definitions of extern global variables]==============================*/
 
@@ -89,7 +89,7 @@ int main(void) {
 	StopWatch_Init();
 	Init_Uart_Ftdi(115200);
 	Init_Leds();
-	angle_i2cDriverInit(_ANGLE_I2C_CFG[0], 0x0C);
+	angle_i2cDriverInit(_ANGLE_I2C_CFG, 0x0C);
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
@@ -101,7 +101,7 @@ int main(void) {
 		Angle = angle_getAngle();
 		itoa((int)Angle, buffer_string, 10);
 		Chip_UART_SendBlocking(USB_UART, buffer_string, 5);
-		Chip_UART_SendBlocking(USB_UART, "\n", 1);
+		Chip_UART_SendBlocking(USB_UART, ",", 1);
 		GPIOToggle(LEDRGB_G);
 		StopWatch_DelayMs(100);
 

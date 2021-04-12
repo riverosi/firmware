@@ -58,12 +58,12 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "../../app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
+#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
@@ -78,11 +78,13 @@ int main(void) {
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
-	LedsInit();
-	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
+		Led_Toggle(RGB_B_LED);
+		StopWatch_DelayMs(500);
 		__WFI();
 	}
 
@@ -93,7 +95,10 @@ int main(void) {
 	return 0;
 
 }
+/*=======================[SysTick_Handler]===================================*/
+void SysTick_Handler(void) {
 
+}
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */
