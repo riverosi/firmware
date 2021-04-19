@@ -103,15 +103,12 @@ static  volatile uint32_t cnt = 0;
 /** Flag for print data in serial port*/
 static volatile bool flag_serial_data_print = FALSE;
 /*==================[SystickHandler]=========================================*/
-
 void SysTick_Handler(void) {
-
 	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
 		flag_serial_data_print = TRUE;
 	}
-
 	if (cnt == 50) { /*LED3 toggle every 500 ms*/
-		GPIOToggle(LED3);
+		Led_Toggle(GREEN_LED);
 		cnt = 0;
 	}
 	cnt++;
@@ -153,18 +150,18 @@ int main(void) {
 			RX_data[0].data_ready = true;
 			RX_data[0].force_node = float_data;
 			if (float_data > 0.2) {
-				GPIOOn(LEDRGB_R);
+				Led_On(RGB_B_LED);
 			} else {
-				GPIOOff(LEDRGB_R);
+				Led_Off(RGB_B_LED);
 			}
 		}
 		if (rcv_fr_PTX[0] == 0x02) {/*Pedal R*/
 			RX_data[1].data_ready = true;
 			RX_data[1].force_node = float_data;
 			if (float_data > 0.2) {
-				GPIOOn(LED1);
+				Led_On(RED_LED);
 			} else {
-				GPIOOff(LED1);
+				Led_Off(RED_LED);
 			}
 		}
 

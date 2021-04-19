@@ -125,7 +125,7 @@ void Chip_SetupCoreClock(CHIP_CGU_CLKIN_T clkin, uint32_t core_freq, bool setbas
 
 	while(delay --){} /* Wait for approx 50 uSec */
 	if (direct) {
-		delay = 500;
+		delay = 5000;
 		ppll.ctrl |= 1 << 7;
 		Chip_Clock_SetupMainPLL(&ppll); /* Set DIRECT to operate at full frequency */
 		while(delay --){} /* Wait for approx 50 uSec */

@@ -71,13 +71,13 @@ void Delay(void)
 int main(void)
 {
 	SystemClockInit();
-	LedsInit();
+	Init_Leds();
 
     while(1)
     {
-    	LedOn(LED_1);
+    	Led_On(RED_LED);
 		Delay();
-		LedOff(LED_1);
+		Led_Off(RED_LED);
 		Delay();
 	}
 

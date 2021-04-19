@@ -173,12 +173,12 @@ uint8_t Led_On(uint8_t led)
 	 * */
 	uint8_t result = FALSE;
 
-	if (led & RED_LED)
+	if (led & YELLOW_LED)
 	{
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT,LED1_GPIO_PORT,LED1_GPIO_PIN);
 		result = TRUE;
 	}
-	if (led & YELLOW_LED)
+	if (led & RED_LED)
 	{
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT,LED2_GPIO_PORT,LED2_GPIO_PIN);
 		result = TRUE;
@@ -214,12 +214,12 @@ uint8_t Led_Off(uint8_t led)
 		 * */
 	uint8_t result = FALSE;
 
-	if (led & RED_LED)
+	if (led & YELLOW_LED)
 	{
 		Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT,LED1_GPIO_PORT,LED1_GPIO_PIN);
 		result = TRUE;
 	}
-	if (led & YELLOW_LED)
+	if (led & RED_LED)
 	{
 		Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT,LED2_GPIO_PORT,LED2_GPIO_PIN);
 		result = TRUE;
@@ -255,12 +255,12 @@ uint8_t Led_Toggle(uint8_t led)
 		 * */
 	uint8_t result = FALSE;
 
-	if (led & RED_LED)
+	if (led & YELLOW_LED)
 	{
 		Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, LED1_GPIO_PORT, LED1_GPIO_PIN);
 		result = TRUE;
 	}
-	if (led & YELLOW_LED)
+	if (led & RED_LED)
 	{
 		Chip_GPIO_SetPinToggle(LPC_GPIO_PORT, LED2_GPIO_PORT, LED2_GPIO_PIN);
 		result = TRUE;
