@@ -102,7 +102,12 @@ void SendByte_Uart_Rs232(uint8_t* dat);
 void SendString_Uart_Ftdi(uint8_t *msg);
 void SendString_Uart_Rs232(uint8_t *msg);
 void Send_String_UART(const void *data, int numBytes);
+
+void SendStringRs485(const void *data, int numBytes);
+
 void IntToString(int16_t value, uint8_t* pBuf, uint32_t len, uint32_t base);
+
+
 
 /**
  * C++ version 0.4 char* style "itoa":

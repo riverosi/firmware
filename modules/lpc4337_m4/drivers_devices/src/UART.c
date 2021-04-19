@@ -318,6 +318,10 @@ void Send_String_UART(const void *data, int numBytes){
 	Chip_UART_SendBlocking(USB_UART, data, numBytes);
 };
 
+void SendStringRs485(const void *data, int numBytes){
+	Chip_UART_SendBlocking(RS485_UART, data, numBytes);
+}
+
 /**
  * C++ version 0.4 char* style "itoa":
  * Written by Lukás Chmela

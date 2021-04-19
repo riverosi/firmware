@@ -1,11 +1,7 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
- *
+/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
  * All rights reserved.
+ *
+ * This file is part of CIAA Firmware.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,46 +31,56 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
+#ifndef MIPROYECTO_H
+#define MIPROYECTO_H
+/** \brief Bare Metal example header file
+ **
+ ** This is a mini example of the CIAA Firmware
  **
  **/
+
+/** \addtogroup CIAA_Firmware CIAA Firmware
+ ** @{ */
+/** \addtogroup Examples CIAA Firmware Examples
+ ** @{ */
+/** \addtogroup Baremetal Bare Metal example header file
+ ** @{ */
 
 /*
  * Initials     Name
  * ---------------------------
- * SM		Sebastian Mateos
+ *
  */
 
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
+ * yyyymmdd v0.0.1 initials initial version
  */
 
 /*==================[inclusions]=============================================*/
-#include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
+#include "led.h"
+#include "gpio.h"
+#include "fpu_init.h"
+#include "UART.h"
+#include "stopwatch.h"
 
-/*==================[macros and definitions]=================================*/
 
-/*==================[internal data declaration]==============================*/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*==================[internal functions declaration]=========================*/
+int main(void);
 
-/*==================[internal data definition]===============================*/
+/*==================[cplusplus]==============================================*/
 
-/*==================[external data definition]===============================*/
-
-/*==================[internal functions definition]==========================*/
-
-/*==================[external functions definition]==========================*/
-
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	Chip_SetupIrcClocking();
- 	//Chip_SetupXtalClocking();
+#ifdef __cplusplus
 }
+#endif
+
+/*==================[external functions declaration]=========================*/
+
 
 /*==================[end of file]============================================*/
+#endif /* #ifndef MIPROYECTO_H */
+
