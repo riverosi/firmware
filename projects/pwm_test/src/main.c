@@ -93,6 +93,7 @@ void interruption_tec_4(void){
 void SysTick_Handler(void) {
 	if ((cnt % 50) == 0) {
 		pwmWrite(PWM7, (uint8_t)dutyCycle_led1);
+		pwmWrite(PWM0, (uint8_t)dutyCycle_led1);
 	}
 	if ((cnt % 200) == 0) {
 		GPIOToggle(LEDRGB_B);
@@ -109,6 +110,7 @@ int main(void) {
 	StopWatch_Init();
 	Init_Leds();
 	pwmInit(0,PWM_ENABLE); // Enable pwm
+	pwmInit(PWM0, PWM_ENABLE_OUTPUT);/* T_FIL1 */
 	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
 	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
 	GPIOInit(TEC_2, GPIO_INPUT);

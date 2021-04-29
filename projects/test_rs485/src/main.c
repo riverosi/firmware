@@ -60,6 +60,7 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
+#include <string.h>
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
@@ -68,8 +69,14 @@
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-uint8_t data_array[ARRAY_SIZE] = {7,6,5,4,3,2,1,0};
+
 /*=====[Definitions of private global variables]=============================*/
+void printString(uint16_t* data){
+	uint8_t  arr2[sizeof(uint16_t)*ARRAY_SIZE] = {0};
+	memcpy(&arr2, data, sizeof(uint16_t)*ARRAY_SIZE);
+	SendStringRs485(arr2, sizeof(uint16_t)*ARRAY_SIZE);
+}
+
 /*=======================[SysTick_Handler]===================================*/
 void SysTick_Handler(void) {
 
@@ -84,11 +91,12 @@ int main(void) {
 	Init_Leds();
 	Init_Uart_Rs485();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	uint16_t data_array[ARRAY_SIZE] = {0xFFFF,0,0xFFFF,0,0xFFFF,0,0xFFFF,0};
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 		Led_Toggle(RGB_B_LED);
-		SendStringRs485(data_array, ARRAY_SIZE);
-		StopWatch_DelayMs(500);
+		printString(data_array);
+		StopWatch_DelayMs(100);
 		__WFI();
 	}
 

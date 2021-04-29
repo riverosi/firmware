@@ -77,7 +77,7 @@
 #include "systemclock.h"
 #include "chip.h"
 /*==================[Definitions]============================================*/
-#define SISTICK_CALL_FREC	100  /*call SysTick every 10ms 1/100Hz*/
+#define SYSTICK_CALL_FREC	100  /*call SysTick every 10ms 1/100Hz*/
 
 typedef struct {
 	float force_node; /** <= force in [Kg]*/
@@ -134,7 +134,7 @@ int main(void) {
 	Nrf24EnableRxMode(&RX); /* Enable RX mode */
 	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
 
-	SysTick_Config(SystemCoreClock / 100);
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
 
 	float float_data = 0.0f;
 	/* RX_data[0] Store Pedal Left data
@@ -192,15 +192,10 @@ void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	 * length: 1 + 4*N bytes
 	 * |0xFF|4 x data_float|....|4 x data_float|
 	 */
-	if (rx_buffer[0].data_ready && rx_buffer[1].data_ready) {
 		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
 		Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
 		Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
 				sizeof(float));
-		rx_buffer[0].data_ready = FALSE;/*Clear the data flags*/
-		rx_buffer[1].data_ready = FALSE;/*Clear the data flags*/
-	}
-
 }
 void clear_array(void) {
 	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
