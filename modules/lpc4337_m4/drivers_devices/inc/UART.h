@@ -84,6 +84,7 @@
 
 /*==================[external functions declaration]=========================*/
 uint32_t Init_Uart_Ftdi(int32_t baudios); /*Recibe como parametros los baudios para la velocidad de transmision*/
+uint32_t Init_Uart_Ftdi_IntAct(int32_t baudios); /*Recibe como parametros los baudios para la velocidad de transmision*/
 uint32_t Init_Uart_Rs485(void);
 uint32_t Init_Uart_Rs232(void);
 

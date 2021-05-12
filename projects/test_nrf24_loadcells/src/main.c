@@ -93,10 +93,27 @@ typedef struct {
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global functions]==============================*/
-void Init_Hardware(void);
-void print_serial_data(nrf24l01p_pedal_data * rx_buffer);
-void clear_array(void);
-
+void Init_Hardware(void) {
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Switches();
+	Init_Leds();
+	StopWatch_DelayMs(100);
+}
+void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
+	/* Protocol Serial:
+	 * length: 1 + 4*N bytes
+	 * |0xFF|4 x data_float|....|4 x data_float|
+	 */
+		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
+		Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
+		Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
+				sizeof(float));
+}
+void clear_array(void) {
+	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
+}
 /*=====[Definitions of public global variables]=============================*/
 /** Variable used for SysTick Counter */
 static  volatile uint32_t cnt = 0;
@@ -178,28 +195,7 @@ int main(void) {
 
 	return 0;
 }
-/*=====[Declarations of public global functions]==============================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
-	Init_Switches();
-	Init_Leds();
-	StopWatch_DelayMs(100);
-}
-void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
-	/* Protocol Serial:
-	 * length: 1 + 4*N bytes
-	 * |0xFF|4 x data_float|....|4 x data_float|
-	 */
-		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
-		Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
-		Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
-				sizeof(float));
-}
-void clear_array(void) {
-	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
-}
+
 
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */

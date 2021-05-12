@@ -47,7 +47,7 @@
 
 /** @defgroup ANGLE_COMPILE Compilation Config */              /** @{ */
 
-   #define   __ANGLE_DRV_I2C__                            /**<     @macro __ANGLE_DRV_I2C__  @brief I2C driver selector */                                          
+#define   __ANGLE_DRV_I2C__                            /**<     @macro __ANGLE_DRV_I2C__  @brief I2C driver selector */
 
                                                                        /** @} */
 /** @defgroup ANGLE_VAR Variables */                           /** @{ */

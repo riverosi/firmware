@@ -60,76 +60,76 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-/*=====[Inclusions of function dependencies]=================================*/
-#define SISTICK_CALL_FREC	1000
-/*=====[Definition macros of private constants]==============================*/
 
+/*=====[Inclusions of function dependencies]=================================*/
+
+/*=====[Definition macros of private constants]==============================*/
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define BUFFLEN 128
+#define UART_BAUDRATE 460800
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-/** Variable used for SysTick Counter */
-static volatile uint32_t cnt = 0;
-/** Variable used for update dutyCycle */
-static volatile int dutyCycle_led1 = 0;
+RINGBUFF_T rbRx;
+uint8_t rxBuff[BUFFLEN];
 /*=====[Definitions of private global variables]=============================*/
-void interruption_tec_2(void) {
-	/* Increment duty */
-	dutyCycle_led1 = dutyCycle_led1 + 8;
-	if (dutyCycle_led1 > 255) {
-		dutyCycle_led1 = 255;
-	}
-}
-void interruption_tec_3(void) {
-	/* Decrement duty */
-	dutyCycle_led1 = dutyCycle_led1 - 8;
-	if (dutyCycle_led1 < 0) {
-		dutyCycle_led1 = 0;
-	}
-}
-void interruption_tec_4(void){
-	dutyCycle_led1 = 0;
+void uart_init_intact(void) {
+	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
+	Chip_SCU_PinMuxSet(7, 2,
+			SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS
+					| SCU_MODE_FUNC6);
+	Chip_UART_Init( LPC_USART2);
+	Chip_UART_ConfigData( LPC_USART2,
+			UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
+	Chip_UART_SetBaud( LPC_USART2, UART_BAUDRATE);
+	Chip_UART_SetupFIFOS( LPC_USART2,
+			( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
+					| UART_FCR_TRG_LEV3));
+	Chip_UART_IntEnable( LPC_USART2, ( UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_EnableIRQ(USART2_IRQn);
+	Chip_UART_TXEnable( LPC_USART2);
 }
 
+void UART2_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB( LPC_USART2, &rbRx);
+}
+/*=======================[SysTick_Handler]===================================*/
+static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
 void SysTick_Handler(void) {
-	if ((cnt % 50) == 0) {
-		pwmWrite(PWM7, (uint8_t)dutyCycle_led1);
-		pwmWrite(PWM0, (uint8_t)dutyCycle_led1);
+	if (cnt == 500) { /*LED3 toggle every 500 ms*/
+		Led_Toggle(YELLOW_LED);
+		cnt = 0;
 	}
 	cnt++;
 }
-
 /*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
-
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
+	uart_init_intact();
 	Init_Leds();
-	pwmInit(0,PWM_ENABLE); // Enable pwm
-	pwmInit(PWM0, PWM_ENABLE_OUTPUT);/* T_FIL1 */
-	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
-	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
-	GPIOInit(TEC_2, GPIO_INPUT);
-	GPIOActivInt(GPIOGP0, TEC_2, interruption_tec_2, IRQ_LEVEL_LOW);
-	GPIOInit(TEC_3, GPIO_INPUT);
-	GPIOActivInt(GPIOGP1, TEC_3, interruption_tec_3, IRQ_LEVEL_LOW);
-	GPIOInit(TEC_4, GPIO_INPUT);
-	GPIOActivInt(GPIOGP2, TEC_4, interruption_tec_4, IRQ_LEVEL_LOW);
+	dacInit(DAC_ENABLE);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	uint8_t data_array[2] = { 0 };
+	uint16_t dacValue;
+	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
+
 	// ----- Repeat for ever -------------------------
-	while (TRUE) {
-		uint8_t var;
-		for (var = 0; var < 127; var++) {
-			pwmWrite(PWM9, var);
-			StopWatch_DelayMs(10);
+	for (;;) {
+		if (Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2) == 2) {
+			dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
+			dacWrite(dacValue & 0x03FF);
 		}
-
-		for (var = 127; var > 1 ; var--) {
-			pwmWrite(PWM9, var);
-			StopWatch_DelayMs(10);
-		}
-
+		/*
+		 if (ReadRxReady_Uart_Ftdi() != 0) {
+		 if (Chip_UART_Read(USB_UART, data_array, 2) == 2) {
+		 dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
+		 dacWrite(dacValue & 0x03FF);
+		 }
+		 }
+		 */
 		__WFI();
 	}
 

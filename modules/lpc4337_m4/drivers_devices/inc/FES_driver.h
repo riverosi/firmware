@@ -2,7 +2,7 @@
  * FES_driver.h
  *
  *  Created on: 28 abr. 2021
- *      Author: river
+ *      Author: riverosky ignacio
  */
 
 #ifndef MODULES_LPC4337_M4_DRIVERS_DEVICES_INC_FES_DRIVER_H_
@@ -38,6 +38,9 @@ marked as red, right and left hamstrings (RH and LH) as blue, and right and left
 green. The black contour marks the right leg.
 Source: A Comparative Study on Control Strategies for FES Cycling Using a Detailed Musculoskeletal Model
 */
+#define K 30
+#define OMEGA_MAX 75	/*angular velocity in RPM*/
+
 #define RQ_START	300
 #define RQ_END		40
 #define LQ_START	120
@@ -55,9 +58,12 @@ Source: A Comparative Study on Control Strategies for FES Cycling Using a Detail
 
 /*=====[Definitions of public data types]====================================*/
 typedef struct {
-	uint8_t channelEnable;
-	uint16_t channelAmplitude[NUMBER_CHANNELS];
-	uint8_t dutyCycle;
+	uint8_t channelEnable;/**!< mask of channels enables is FES*/
+	uint16_t channelAmplitude[NUMBER_CHANNELS];/**!< */
+	uint8_t upTime[NUMBER_CHANNELS];/**!< */
+
+	/*check*/
+	uint8_t frecuency; /*Verificar frecuencia por si necesita cambiar para el reflejo de retirada*/
 } dataFES_t;
 
 typedef enum {
