@@ -92,8 +92,8 @@ void interruption_tec_4(void){
 
 void SysTick_Handler(void) {
 	if ((cnt % 50) == 0) {
-		pwmWrite(PWM7, (uint8_t)dutyCycle_led1);
-		pwmWrite(PWM0, (uint8_t)dutyCycle_led1);
+		pwmWrite(PWM7, (uint8_t)dutyCycle_led1);// LED1 -> not inverter
+		pwmWrite(PWM0, ~(uint8_t)dutyCycle_led1);// T_FIL1 -> Not mask is used
 	}
 	cnt++;
 }
@@ -125,11 +125,12 @@ int main(void) {
 			StopWatch_DelayMs(10);
 		}
 
-		for (var = 127; var > 1 ; var--) {
+		for (var = 127; var > 0 ; var--) {
 			pwmWrite(PWM9, var);
 			StopWatch_DelayMs(10);
 		}
-
+		pwmWrite(PWM9, 0);
+		StopWatch_DelayMs(500);
 		__WFI();
 	}
 

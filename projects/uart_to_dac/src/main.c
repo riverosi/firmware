@@ -64,7 +64,7 @@
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1/SISTICK_CALL_FREC in seconds*/
 #define BUFFLEN 128
 #define UART_BAUDRATE 460800
 /*=====[Definitions of extern global variables]==============================*/
@@ -72,6 +72,7 @@
 /*=====[Definitions of public global variables]==============================*/
 RINGBUFF_T rbRx;
 uint8_t rxBuff[BUFFLEN];
+uint16_t dacValue;
 /*=====[Definitions of private global variables]=============================*/
 void uart_init_intact(void) {
 	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
@@ -96,11 +97,7 @@ void UART2_IRQHandler(void) {
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
 void SysTick_Handler(void) {
-	if (cnt == 500) { /*LED3 toggle every 500 ms*/
-		Led_Toggle(YELLOW_LED);
-		cnt = 0;
-	}
-	cnt++;
+	dacWrite(dacValue & 0x03FF);
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
@@ -113,14 +110,11 @@ int main(void) {
 	dacInit(DAC_ENABLE);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	uint8_t data_array[2] = { 0 };
-	uint16_t dacValue;
 	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
-
 	// ----- Repeat for ever -------------------------
 	for (;;) {
 		if (Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2) == 2) {
 			dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
-			dacWrite(dacValue & 0x03FF);
 		}
 		/*
 		 if (ReadRxReady_Uart_Ftdi() != 0) {

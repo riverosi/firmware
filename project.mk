@@ -41,7 +41,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 #test_nrf24_loadcells
-PROJECT = projects/uart_to_dac
+PROJECT = projects/pwm_test
 TARGET = lpc4337_m4
 BOARD = edu_ciaa_nxp
 #-------------------------------------------------------------------------------
