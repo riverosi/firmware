@@ -66,7 +66,9 @@ PROJECT_NAME := $(notdir $(PROJECT))
 PROJECT_MODULES := modules/$(TARGET)/base \
                    modules/$(TARGET)/drivers_devices \
                    modules/$(TARGET)/drivers_microcontroller \
+                   modules/$(TARGET)/dsp \
                    modules/$(TARGET)/chip
+                   
 
 # source files folder
 PROJECT_SRC_FOLDERS := $(PROJECT)/src
@@ -170,6 +172,13 @@ drivers_devices_PATH := modules/lpc4337_m4/drivers_devices
 drivers_devices_SRC_FILES := $(wildcard $(drivers_devices_PATH)/src/*.c)
 drivers_devices_INC_FOLDERS := $(drivers_devices_PATH)/inc
 drivers_devices_SRC_FOLDERS := $(drivers_devices_PATH)/src
+
+#Modulo DSP
+dsp_PATH := modules/lpc4337_m4/dsp
+
+dsp_INC_FOLDERS := $(dsp_PATH)/inc
+EXTERN_LIB_FOLDERS += $(dsp_PATH)/lib
+EXTERN_LIBS += arm_cortexM4lf_math
 
 #####JM FIN#######
 

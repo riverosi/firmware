@@ -61,6 +61,13 @@
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include <stdlib.h>
+
+
+#define ARM_MATH_CM4
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+#include "arm_const_structs.h"
+
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
@@ -69,7 +76,10 @@ const uint32_t _ANGLE_I2C_CFG =  100000;
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-
+union {
+	uint16_t Angle;
+	uint8_t buffer_string[2];
+} data_union;
 /*=====[Definitions of private global variables]=============================*/
 
 /*=====[Main function, program entry point after power on or reset]==========*/
@@ -94,17 +104,13 @@ int main(void) {
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
 	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
-	uint16_t Angle;
-	char buffer_string[5];
+
+
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		Angle = angle_getAngle();
-		itoa((int)Angle, buffer_string, 10);
-		Chip_UART_SendBlocking(USB_UART, buffer_string, 5);
-		Chip_UART_SendBlocking(USB_UART, ",", 1);
-		GPIOToggle(LEDRGB_G);
+		data_union.Angle = angle_getAngle();
+		Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 2);
 		StopWatch_DelayMs(100);
-
 		__WFI();
 	}
 

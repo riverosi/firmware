@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
+/** \brief Blinking Bare Metal example source file
  **
- ** This is a mini example of the CIAA Firmware
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
 
 /** \addtogroup CIAA_Firmware CIAA Firmware
  ** @{ */
+
 /** \addtogroup Examples CIAA Firmware Examples
  ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
+/** \addtogroup Baremetal Bare Metal example source file
  ** @{ */
 
 /*
@@ -59,28 +58,49 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "__angle_driver.h"
+#include "../../test_timer/inc/mi_proyecto.h"       /* <= own header */
+#include "systemclock.h"
+/*=====[Inclusions of function dependencies]=================================*/
+void blink_led(void);
+/*=====[Definition macros of private constants]==============================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*=====[Definitions of extern global variables]==============================*/
 
-int main(void);
+/*=====[Definitions of public global variables]==============================*/
+timer_config timer_led = {TIMER_B, 1000, &blink_led };
+/*=====[Definitions of private global variables]=============================*/
 
-/*==================[cplusplus]==============================================*/
-
-#ifdef __cplusplus
+void blink_led(void){
+	Led_Toggle(GREEN_LED);
 }
-#endif
 
-/*==================[external functions declaration]=========================*/
+/*=====[Main function, program entry point after power on or reset]==========*/
+
+int main(void) {
+
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	TimerInit(&timer_led);
+	TimerStart(TIMER_B);
+	// ----- Repeat for ever -------------------------
+	while (TRUE) {
+		__WFI();
+	}
+
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
+
+	return 0;
+
+}
 
 
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
 

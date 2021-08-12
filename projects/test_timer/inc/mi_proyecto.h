@@ -63,8 +63,8 @@
 #include "gpio.h"
 #include "fpu_init.h"
 #include "UART.h"
-#include "stopwatch.h"
-#include "__angle_driver.h"
+#include "timer.h"
+
 
 #ifdef __cplusplus
 extern "C" {

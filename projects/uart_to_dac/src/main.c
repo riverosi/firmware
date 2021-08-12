@@ -73,15 +73,15 @@
 RINGBUFF_T rbRx;
 uint8_t rxBuff[BUFFLEN];
 uint16_t dacValue;
+
 /*=====[Definitions of private global variables]=============================*/
 void uart_init_intact(void) {
 	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
 	Chip_SCU_PinMuxSet(7, 2,
-			SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS
-					| SCU_MODE_FUNC6);
+	SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS | SCU_MODE_FUNC6);
 	Chip_UART_Init( LPC_USART2);
 	Chip_UART_ConfigData( LPC_USART2,
-			UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
+	UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
 	Chip_UART_SetBaud( LPC_USART2, UART_BAUDRATE);
 	Chip_UART_SetupFIFOS( LPC_USART2,
 			( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
@@ -92,7 +92,7 @@ void uart_init_intact(void) {
 }
 
 void UART2_IRQHandler(void) {
-	Chip_UART_RXIntHandlerRB( LPC_USART2, &rbRx);
+	Chip_UART_RXIntHandlerRB(LPC_USART2, &rbRx);//pone los datos que se mandan por UART en el ring buffer
 }
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */

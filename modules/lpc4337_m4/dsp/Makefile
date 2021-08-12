@@ -1,15 +1,4 @@
-########################################################################
-#Cátedra: Electrónica Programable
-#FIUNER
-#2018
-#Autor/es:
-#JMReta - jmreta@ingenieria.uner.edu.ar
-#
-#Revisión:
-#17-01-18: Versión inicial 
-#
-#########################################################################
-#
+# Copyright 2016, Pablo Ridolfi
 # All rights reserved.
 #
 # This file is part of Workspace.
@@ -39,9 +28,10 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#################################################################################
-#test_nrf24_loadcells
-PROJECT = projects/test_a1335
-TARGET = lpc4337_m4
-BOARD = edu_ciaa_nxp
-#-------------------------------------------------------------------------------
+
+dsp152_PATH := modules/lpc4337_m4/dsp152
+
+dsp152_INC_FOLDERS := $(dsp152_PATH)/inc
+
+EXTERN_LIB_FOLDERS += $(dsp152_PATH)/lib
+EXTERN_LIBS += arm_cortexM4lf_math

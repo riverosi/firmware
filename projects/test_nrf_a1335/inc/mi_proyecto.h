@@ -60,11 +60,17 @@
 
 /*==================[inclusions]=============================================*/
 #include "led.h"
+#include "switch.h"
 #include "gpio.h"
 #include "fpu_init.h"
 #include "UART.h"
 #include "stopwatch.h"
+#include "nrf24l01.h"
 #include "__angle_driver.h"
+#include "FES_driver.h"
+#include "sapi_dac.h"
+#include <string.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,6 +85,8 @@ int main(void);
 #endif
 
 /*==================[external functions declaration]=========================*/
+
+/*==================[end of file]============================================*/
 
 
 /*==================[end of file]============================================*/
