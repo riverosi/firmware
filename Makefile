@@ -68,7 +68,6 @@ PROJECT_MODULES := modules/$(TARGET)/base \
                    modules/$(TARGET)/drivers_microcontroller \
                    modules/$(TARGET)/dsp \
                    modules/$(TARGET)/chip
-                   
 
 # source files folder
 PROJECT_SRC_FOLDERS := $(PROJECT)/src
@@ -100,11 +99,11 @@ SYMBOLS += -DDEBUG -DCORE_M4 -D__USE_LPCOPEN -D__LPC43XX__ -D__CODE_RED \
 
 # Compilation flags
 CFLAGS  := -Wall -ggdb3 -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 \
-           -mfloat-abi=softfp -fdata-sections -ffunction-sections
+           -mfloat-abi=hard -fdata-sections -ffunction-sections -fstack-usage
 
 # Linking flags
 LFLAGS  := -nostdlib -fno-builtin -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 \
-           -mfloat-abi=softfp -Xlinker -Map=$(OUT_PATH)/$(PROJECT_NAME).map \
+           -mfloat-abi=hard -Xlinker -Map=$(OUT_PATH)/$(PROJECT_NAME).map \
 			  -Wl,--gc-sections
 
 # Linker scripts
@@ -146,12 +145,12 @@ base_SRC_FILES := $(wildcard $(base_PATH)/src/*.c) \
 base_INC_FOLDERS := $(base_PATH)/inc
 base_SRC_FOLDERS := $(base_PATH)/src
 
-#Modulo BOARD
-board_PATH := modules/lpc4337_m4/board
-board_SRC_FILES := $(wildcard $(board_PATH)/src/*.c) \
-                   $(wildcard $(board_PATH)/src/*.S)
-board_INC_FOLDERS := $(board_PATH)/inc
-board_SRC_FOLDERS := $(board_PATH)/src
+#Modulo DSP
+dsp_PATH := modules/lpc4337_m4/dsp
+
+dsp_INC_FOLDERS := $(dsp_PATH)/inc
+EXTERN_LIB_FOLDERS += $(dsp_PATH)/lib
+EXTERN_LIBS += arm_cortexM4lf_math
 
 #Modulo Chip
 
@@ -172,13 +171,6 @@ drivers_devices_PATH := modules/lpc4337_m4/drivers_devices
 drivers_devices_SRC_FILES := $(wildcard $(drivers_devices_PATH)/src/*.c)
 drivers_devices_INC_FOLDERS := $(drivers_devices_PATH)/inc
 drivers_devices_SRC_FOLDERS := $(drivers_devices_PATH)/src
-
-#Modulo DSP
-dsp_PATH := modules/lpc4337_m4/dsp
-
-dsp_INC_FOLDERS := $(dsp_PATH)/inc
-EXTERN_LIB_FOLDERS += $(dsp_PATH)/lib
-EXTERN_LIBS += arm_cortexM4lf_math
 
 #####JM FIN#######
 
@@ -270,10 +262,6 @@ info:
 	@echo OBJS: $(PROJECT_OBJS)
 	@echo INCLUDES: $(INCLUDES)
 	@echo PROJECT_SRC_FOLDERS: $(PROJECT_SRC_FOLDERS)
-
-size: $(TARGET)
-	@echo SIZEOF $(notdir $<)...
-	$(Q)$(SIZE) $<
 
 .DEFAULT: all
 

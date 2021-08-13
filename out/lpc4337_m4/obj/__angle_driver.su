@@ -1,0 +1,11 @@
+scu_18xx_43xx.h:199:20:Chip_SCU_I2C0PinConfig	16	static
+stopwatch.h:59:24:StopWatch_Elapsed	16	static
+stopwatch.h:114:20:StopWatch_DelayMs	24	static
+__angle_driver.c:118:12:hal_i2cWrite	32	static
+__angle_driver.c:138:12:hal_i2cRead	40	static
+__angle_driver.c:160:6:angle_i2cDriverInit	16	static
+__angle_driver.c:175:10:angle_getAngle	40	static
+__angle_driver.c:194:10:angle_getTemperature	32	static
+__angle_driver.c:213:10:angle_getMagnetics	32	static
+__angle_driver.c:232:10:angle_getStatus	32	static
+__angle_driver.c:249:6:angle_setConfig	24	static

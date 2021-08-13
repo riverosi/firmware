@@ -1,0 +1,6 @@
+core_cm4.h:1550:22:NVIC_SetPriority	16	static
+core_cm4.h:1677:26:SysTick_Config	16	static
+stopwatch.h:59:24:StopWatch_Elapsed	16	static
+stopwatch.h:114:20:StopWatch_DelayMs	24	static
+main.c:87:6:SysTick_Handler	8	static
+main.c:94:5:main	8	static

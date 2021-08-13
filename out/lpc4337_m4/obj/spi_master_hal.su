@@ -1,0 +1,12 @@
+scu_18xx_43xx.h:135:20:Chip_SCU_PinMuxSet	16	static
+ssp_18xx_43xx.h:239:20:Chip_SSP_Enable	16	static
+ssp_18xx_43xx.h:261:20:Chip_SSP_EnableLoopBack	16	static
+ssp_18xx_43xx.h:273:20:Chip_SSP_DisableLoopBack	16	static
+ssp_18xx_43xx.h:413:20:Chip_SSP_SetFormat	24	static
+spi_master_hal.c:49:6:SpiInit	24	static
+spi_master_hal.c:65:6:SpiDeInit	16	static
+spi_master_hal.c:72:6:SpiConfig	16	static
+spi_master_hal.c:78:6:SpiReadBlocking	48	static
+spi_master_hal.c:89:6:SpiWriteBlocking	48	static
+spi_master_hal.c:100:6:SpiRWBlocking	48	static
+spi_master_hal.c:112:6:SpiTestLoopBack	16	static
