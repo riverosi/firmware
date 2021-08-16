@@ -89,7 +89,12 @@ extern const uint16_t _ANGLE_CER_1;
                                                                        /** @} */
 /** @defgroup ANGLE_TYPES Types */                             /** @{ */
 
-
+typedef enum {
+	ANGLE_SA0SA1_00 = 0x0C,
+	ANGLE_SA0SA1_01 = 0x0D,
+	ANGLE_SA0SA1_10 = 0x0E,
+	ANGLE_SA0SA1_11 = 0x0F,
+}angle_address_t;
 
                                                                        /** @} */
 #ifdef __cplusplus

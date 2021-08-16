@@ -96,12 +96,17 @@ int main(void) {
 	Init_Uart_Ftdi(115200);
 	Init_Leds();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float RMS_value = 2.0;
+	float rms, power, max, min, mean;
+	uint32_t idmax, idmin;
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 		Led_Toggle(RGB_R_LED);
 		StopWatch_DelayMs(500);
-		arm_rms_f32(&testInput_f32, blockSize, &RMS_value);
+		arm_rms_f32(&testInput_f32, blockSize, &rms);
+		arm_power_f32(&testInput_f32, blockSize, &power);
+		arm_max_f32(&testInput_f32, blockSize, &max, &idmax);
+		arm_min_f32(&testInput_f32, blockSize, &min, &idmin);
+		arm_mean_f32(&testInput_f32, blockSize, &mean);
 		__WFI();
 	}
 

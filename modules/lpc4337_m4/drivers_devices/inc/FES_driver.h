@@ -33,13 +33,15 @@ extern "C" {
 #define	BIT6	1 << 6
 #define	BIT7	1 << 7
 
+#define CLEAN_MASK 0x00
+
 /* Muscles range angles for excitation during a pedal stroke. Right and left quadriceps (RQ and LQ)
 marked as red, right and left hamstrings (RH and LH) as blue, and right and left gluteus (RG and LG), as
 green. The black contour marks the right leg.
 Source: A Comparative Study on Control Strategies for FES Cycling Using a Detailed Musculoskeletal Model
 */
-#define K 30
-#define OMEGA_MAX 75	/*angular velocity in RPM*/
+#define K 30.0
+#define OMEGA_MAX 75.0	/*angular velocity in RPM*/
 
 #define RQ_START	300
 #define RQ_END		40
@@ -59,10 +61,9 @@ Source: A Comparative Study on Control Strategies for FES Cycling Using a Detail
 /*=====[Definitions of public data types]====================================*/
 typedef struct {
 	uint8_t channelEnable;/**!< mask of channels enables is FES*/
-	uint16_t channelAmplitude[NUMBER_CHANNELS];/**!< */
-	uint8_t upTime[NUMBER_CHANNELS];/**!< */
-
-	/*check*/
+	uint8_t duty[NUMBER_CHANNELS];/**!< Duty Cycle for every channel*/
+	uint8_t channelAmplitude[NUMBER_CHANNELS];/**!< Current Amplitude for every channel*/
+	/* TODO: check*/
 	uint8_t frecuency; /*Verificar frecuencia por si necesita cambiar para el reflejo de retirada*/
 } dataFES_t;
 

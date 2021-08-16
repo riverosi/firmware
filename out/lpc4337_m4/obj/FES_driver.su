@@ -1,5 +1,6 @@
-FES_driver.c:29:10:calculateAngleCorrection	16	static
-FES_driver.c:34:9:sendDataFES	32	static
-FES_driver.c:42:9:initFES	8	static
-FES_driver.c:52:9:setFES	16	static
-FES_driver.c:57:9:clearFES	32	static
+FES_driver.c:30:10:calculateAngleCorrection	24	static
+FES_driver.c:35:9:channelsEnables	16	static
+FES_driver.c:46:9:sendDataFES	24	static
+FES_driver.c:54:9:initFES	8	static
+FES_driver.c:64:9:setFES	16	static
+FES_driver.c:69:9:clearFES	24	static

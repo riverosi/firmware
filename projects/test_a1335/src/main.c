@@ -60,7 +60,7 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include <stdlib.h>
+
 
 
 #define ARM_MATH_CM4
@@ -71,12 +71,12 @@
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-const uint32_t _ANGLE_I2C_CFG =  100000;
-
+#define ANGLE_SENSOR_I2C_CLK 100000
+#define ANGLE_SENSOR_I2C_ADR 0x0C
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-union {
+union { /** Union data for stream in UART*/
 	uint16_t Angle;
 	uint8_t buffer_string[2];
 } data_union;
@@ -99,7 +99,7 @@ int main(void) {
 	StopWatch_Init();
 	Init_Uart_Ftdi(115200);
 	Init_Leds();
-	angle_i2cDriverInit(_ANGLE_I2C_CFG, 0x0C);
+	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
@@ -110,7 +110,7 @@ int main(void) {
 	while (TRUE) {
 		data_union.Angle = angle_getAngle();
 		Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 2);
-		StopWatch_DelayMs(100);
+		StopWatch_DelayMs(10);
 		__WFI();
 	}
 
