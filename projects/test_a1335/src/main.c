@@ -60,9 +60,7 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-
-
-
+//FPU dependences
 #define ARM_MATH_CM4
 #define __FPU_PRESENT 1
 #include "arm_math.h"
@@ -73,44 +71,83 @@
 /*=====[Definition macros of private constants]==============================*/
 #define ANGLE_SENSOR_I2C_CLK 100000
 #define ANGLE_SENSOR_I2C_ADR 0x0C
+
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-union { /** Union data for stream in UART*/
+typedef struct {
 	uint16_t Angle;
-	uint8_t buffer_string[2];
-} data_union;
-/*=====[Definitions of private global variables]=============================*/
+	uint16_t dacValue;
+} data_angle_t;
 
-/*=====[Main function, program entry point after power on or reset]==========*/
-uint32_t cnt = 0;
+static union {
+	/** Union data for stream in UART*/
+	data_angle_t data_a1335;
+	uint8_t buffer_string[4];
+} data_union;
+
+/*=====[Definitions of private global variables]=============================*/
+/**
+ * Read sensors
+ */
+void readInputs(void) {
+	data_union.data_a1335.Angle = angle_getAngle();
+}
+/**
+ * Add calculates here
+ */
+void calculate(void) {
+	data_union.data_a1335.dacValue = data_union.data_a1335.Angle;
+}
+/**
+ * Set outputs
+ */
+void setOutputs(void) {
+	dacWrite(data_union.data_a1335.dacValue);
+}
+/**
+ * Send data, using a union predefinition.
+ */
+void printDataUART(void) {
+	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 4);
+}
+
+/* ----------------------------- SysTick Handler----------------------------*/
+static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
 void SysTick_Handler(void) {
-	if (cnt == 500) {
-		GPIOToggle(LEDRGB_B);
+	if (cnt == 50) {
+		GPIOToggle(LED1);
 		cnt = 0;
 	}
 	cnt++;
 }
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
-
 	/* perform the needed initialization here */
 	SystemClockInit();
-	fpuInit();
+	fpuInit(); //FPU hardware on
 	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
+	Init_Uart_Ftdi(115200); //115200
 	Init_Leds();
+	dacInit(DAC_ENABLE);
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
-	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
-
+	SysTick_Config(SystemCoreClock / 100); /*call systick every 10 ms*/
 
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		data_union.Angle = angle_getAngle();
-		Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 2);
-		StopWatch_DelayMs(10);
+		//read sensors data
+		readInputs();
+		//Compute
+		calculate();
+		//Update outputs
+		setOutputs();
+		//print UART values
+		printDataUART();
+		//delay
+		StopWatch_DelayMs(20);
 		__WFI();
 	}
 
