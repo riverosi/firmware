@@ -70,8 +70,8 @@
 
 /*=====[Definition macros of private constants]==============================*/
 #define ANGLE_SENSOR_I2C_CLK 100000
-#define ANGLE_SENSOR_I2C_ADR 0x0C
-
+#define BUFFLEN 16
+#define UART_BAUDRATE 460800
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
@@ -86,6 +86,9 @@ static union {
 	uint8_t buffer_string[4];
 } data_union;
 
+RINGBUFF_T rbRx;
+uint8_t rxBuff[BUFFLEN];
+
 /*=====[Definitions of private global variables]=============================*/
 /**
  * Read sensors
@@ -97,7 +100,7 @@ void readInputs(void) {
  * Add calculates here
  */
 void calculate(void) {
-	data_union.data_a1335.dacValue = data_union.data_a1335.Angle;
+	//data_union.data_a1335.dacValue = data_union.data_a1335.Angle;
 }
 /**
  * Set outputs
@@ -112,6 +115,29 @@ void printDataUART(void) {
 	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 4);
 }
 
+void uart_init_intact(void) {
+	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
+	Chip_SCU_PinMuxSet(7, 2,
+	SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS | SCU_MODE_FUNC6);
+	Chip_UART_Init( LPC_USART2);
+	Chip_UART_ConfigData( LPC_USART2,
+	UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
+	Chip_UART_SetBaud( LPC_USART2, UART_BAUDRATE);
+	Chip_UART_SetupFIFOS( LPC_USART2,
+			( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
+					| UART_FCR_TRG_LEV3));
+	Chip_UART_IntEnable( LPC_USART2, ( UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_EnableIRQ(USART2_IRQn);
+	Chip_UART_TXEnable( LPC_USART2);
+}
+
+/* ----------------------------- UART2_IRQHandler----------------------------*/
+void UART2_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB(LPC_USART2, &rbRx);//pone los datos que se mandan por UART en el ring buffer
+	uint8_t data_array[2] = { 0 };
+	Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2);
+	data_union.data_a1335.dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
+}
 /* ----------------------------- SysTick Handler----------------------------*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
 void SysTick_Handler(void) {
@@ -127,7 +153,8 @@ int main(void) {
 	SystemClockInit();
 	fpuInit(); //FPU hardware on
 	StopWatch_Init();
-	Init_Uart_Ftdi(115200); //115200
+	uart_init_intact();
+	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
 	Init_Leds();
 	dacInit(DAC_ENABLE);
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
