@@ -59,7 +59,7 @@ extern const uint8_t _ANGLE_EXTENDED_ERROR_REG;
 extern const uint8_t _ANGLE_ERROR_REG;
 extern const uint8_t _ANGLE_STATUS_REG;
 
-const uint8_t _ANGLE_SETTINGS_REG;
+extern const uint8_t _ANGLE_SETTINGS_REG;
 
 /* Change Processor State */
 extern const uint16_t _ANGLE_CDS_NO_CHANGLE;
