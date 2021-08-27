@@ -71,31 +71,56 @@
 /*=====[Definition macros of private constants]==============================*/
 #define ANGLE_SENSOR_I2C_CLK 100000
 #define BUFFLEN 16
-#define UART_BAUDRATE 460800
+#define UART_BAUDRATE 230400//115200
+#define SAMPLE_PERIOD_US 1000
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
 typedef struct {
 	uint16_t Angle;
 	uint16_t dacValue;
+	int16_t omega;
 } data_angle_t;
 
 static union {
 	/** Union data for stream in UART*/
 	data_angle_t data_a1335;
-	uint8_t buffer_string[4];
+	//int16_t omega;
+	uint8_t buffer_string[6];
 } data_union;
-
+static uint16_t prev_angle;
+//static int16_t omega;
 RINGBUFF_T rbRx;
 uint8_t rxBuff[BUFFLEN];
 
 /*=====[Definitions of private global variables]=============================*/
 /**
+ * Computes angular velocity considering the sign
+ */
+
+void computeAngularVelocity(void){
+	data_union.data_a1335.omega  = data_union.data_a1335.Angle - prev_angle;
+	if (abs(data_union.data_a1335.omega )> 300)
+	{
+		if(data_union.data_a1335.Angle>prev_angle)
+			data_union.data_a1335.omega = -360+data_union.data_a1335.Angle-prev_angle;
+		else
+			data_union.data_a1335.omega = 360+data_union.data_a1335.Angle-prev_angle;
+	}
+
+}
+
+/**
  * Read sensors
  */
 void readInputs(void) {
+	prev_angle = data_union.data_a1335.Angle;
 	data_union.data_a1335.Angle = angle_getAngle();
+	computeAngularVelocity();
 }
+
+
+
 /**
  * Add calculates here
  */
@@ -112,7 +137,7 @@ void setOutputs(void) {
  * Send data, using a union predefinition.
  */
 void printDataUART(void) {
-	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 4);
+	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 6);
 }
 
 void uart_init_intact(void) {
@@ -141,7 +166,7 @@ void UART2_IRQHandler(void) {
 /* ----------------------------- SysTick Handler----------------------------*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
 void SysTick_Handler(void) {
-	if (cnt == 50) {
+	if (cnt == 20) {
 		GPIOToggle(LED1);
 		cnt = 0;
 	}
@@ -174,7 +199,8 @@ int main(void) {
 		//print UART values
 		printDataUART();
 		//delay
-		StopWatch_DelayMs(20);
+		//StopWatch_DelayMs(20);
+		StopWatch_DelayUs(SAMPLE_PERIOD_US);
 		__WFI();
 	}
 

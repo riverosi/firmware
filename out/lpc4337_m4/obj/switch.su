@@ -1,5 +1,0 @@
-scu_18xx_43xx.h:135:20:Chip_SCU_PinMuxSet	16	static
-scu_18xx_43xx.h:150:20:Chip_SCU_PinMux	24	static
-gpio_18xx_43xx.h:108:20:Chip_GPIO_ReadPortBit	24	static
-switch.c:108:9:Init_Switches	8	static
-switch.c:138:9:Read_Switches	16	static
