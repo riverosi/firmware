@@ -77,27 +77,25 @@
 
 /*=====[Definitions of public global variables]==============================*/
 typedef struct {
-	uint16_t Angle;
-	uint16_t dacValue;
+	int16_t Angle;
+	int16_t dacValue;
 	int16_t omega;
 } data_angle_t;
 
 static union {
 	/** Union data for stream in UART*/
 	data_angle_t data_a1335;
-	//int16_t omega;
 	uint8_t buffer_string[6];
 } data_union;
-static uint16_t prev_angle;
-//static int16_t omega;
-RINGBUFF_T rbRx;
-uint8_t rxBuff[BUFFLEN];
+
+static int16_t prev_angle = 0;
+RINGBUFF_T rbRx; //ring buffer
+uint8_t rxBuff[BUFFLEN]; //array data for ring buffer
 
 /*=====[Definitions of private global variables]=============================*/
 /**
  * Computes angular velocity considering the sign
  */
-
 void computeAngularVelocity(void){
 	data_union.data_a1335.omega  = data_union.data_a1335.Angle - prev_angle;
 	if (abs(data_union.data_a1335.omega )> 300)
@@ -115,23 +113,21 @@ void computeAngularVelocity(void){
  */
 void readInputs(void) {
 	prev_angle = data_union.data_a1335.Angle;
-	data_union.data_a1335.Angle = angle_getAngle();
+	data_union.data_a1335.Angle = (int16_t)angle_getAngle();
 	computeAngularVelocity();
 }
-
-
 
 /**
  * Add calculates here
  */
 void calculate(void) {
-	//data_union.data_a1335.dacValue = data_union.data_a1335.Angle;
+	//Is recommended use floats for calculations because the FPU is active
 }
 /**
  * Set outputs
  */
 void setOutputs(void) {
-	dacWrite(data_union.data_a1335.dacValue);
+	dacWrite((int16_t)data_union.data_a1335.dacValue);
 }
 /**
  * Send data, using a union predefinition.
@@ -165,6 +161,9 @@ void UART2_IRQHandler(void) {
 }
 /* ----------------------------- SysTick Handler----------------------------*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
+/**
+ * Only for blinky
+ */
 void SysTick_Handler(void) {
 	if (cnt == 20) {
 		GPIOToggle(LED1);
@@ -183,9 +182,6 @@ int main(void) {
 	Init_Leds();
 	dacInit(DAC_ENABLE);
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
-	angle_setConfig(
-			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
-					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
 	SysTick_Config(SystemCoreClock / 100); /*call systick every 10 ms*/
 
 	// ----- Repeat for ever -------------------------

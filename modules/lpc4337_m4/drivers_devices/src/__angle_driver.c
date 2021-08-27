@@ -165,7 +165,9 @@ void angle_i2cDriverInit(uint32_t clkHz, uint8_t slave) {
 	Chip_I2C_SetClockRate(I2C0, clkHz);
 	Chip_I2C_SetMasterEventHandler(I2C0, Chip_I2C_EventHandlerPolling);
 	StopWatch_Init();
-
+	angle_setConfig(
+			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
+					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
 }
 
 #endif
