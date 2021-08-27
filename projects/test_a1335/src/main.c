@@ -127,7 +127,8 @@ void calculate(void) {
  * Set outputs
  */
 void setOutputs(void) {
-	dacWrite((int16_t)data_union.data_a1335.dacValue);
+	pwmWrite(PWM5, (uint8_t)data_union.data_a1335.dacValue);/*T_COL1 PWM*/
+	pwmWrite(PWM7, (uint8_t)data_union.data_a1335.dacValue);/*LED3 PWM*/
 }
 /**
  * Send data, using a union predefinition.
@@ -180,7 +181,9 @@ int main(void) {
 	uart_init_intact();
 	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
 	Init_Leds();
-	dacInit(DAC_ENABLE);
+	pwmInit(0,PWM_ENABLE); // Enable pwm
+	pwmInit(PWM5, PWM_ENABLE_OUTPUT);/*T_COL1 PWM*/
+	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
 	SysTick_Config(SystemCoreClock / 100); /*call systick every 10 ms*/
 
