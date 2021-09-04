@@ -14,7 +14,7 @@
 #include "__angle_driver.h"
 #include <chip.h>
 #include "stopwatch.h"
-
+#define PI 3.14159265358
 /* ------------------------------------------------------------------- MACROS */
 
 /* ---------------------------------------------------------------- VARIABLES */
@@ -173,6 +173,24 @@ void angle_i2cDriverInit(uint32_t clkHz, uint8_t slave) {
 #endif
 
 /* ----------------------------------------------------------- IMPLEMENTATION */
+float angle_getAngleRad(){
+	uint8_t writeReg[1];
+	uint8_t readReg[2];
+	uint16_t angle;
+	float AngleVal;
+
+	writeReg[0] = 0x20;
+
+	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+
+	angle = readReg[0];
+	angle <<= 8;
+	angle |= readReg[1];
+	angle &= 0x0FFF;
+	AngleVal = (float)(angle * ((2*PI) / 4096.0));
+
+	return AngleVal;
+}
 
 uint16_t angle_getAngle() {
 	uint8_t writeReg[1];

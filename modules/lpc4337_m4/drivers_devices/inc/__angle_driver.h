@@ -116,6 +116,11 @@ void angle_i2cDriverInit(uint32_t clkHz, uint8_t slave);
 /**
  * @brief Reads encoded Angle in degreeses
  */
+float angle_getAngleRad();
+
+/**
+ * @brief Reads encoded Angle in degreeses
+ */
 uint16_t angle_getAngle();
 /**
  * @brief Reads temperature in C

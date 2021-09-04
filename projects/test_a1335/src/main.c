@@ -71,24 +71,25 @@
 /*=====[Definition macros of private constants]==============================*/
 #define ANGLE_SENSOR_I2C_CLK 100000
 #define BUFFLEN 16
-#define UART_BAUDRATE 230400//115200
+#define UART_BAUDRATE 230400
 #define SAMPLE_PERIOD_US 1000
+#define PI 3.14159265358
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
 typedef struct {
-	int16_t Angle;
-	int16_t dacValue;
-	int16_t omega;
+	float Angle;
+	float dacValue;
+	float omega;
 } data_angle_t;
 
 static union {
 	/** Union data for stream in UART*/
 	data_angle_t data_a1335;
-	uint8_t buffer_string[6];
+	uint8_t buffer_string[12];
 } data_union;
 
-static int16_t prev_angle = 0;
+static float prev_angle = 0;
 RINGBUFF_T rbRx; //ring buffer
 uint8_t rxBuff[BUFFLEN]; //array data for ring buffer
 
@@ -98,12 +99,12 @@ uint8_t rxBuff[BUFFLEN]; //array data for ring buffer
  */
 void computeAngularVelocity(void){
 	data_union.data_a1335.omega  = data_union.data_a1335.Angle - prev_angle;
-	if (abs(data_union.data_a1335.omega )> 300)
+	if (abs(data_union.data_a1335.omega )> 3)
 	{
 		if(data_union.data_a1335.Angle>prev_angle)
-			data_union.data_a1335.omega = -360+data_union.data_a1335.Angle-prev_angle;
+			data_union.data_a1335.omega = -PI+data_union.data_a1335.Angle-prev_angle;
 		else
-			data_union.data_a1335.omega = 360+data_union.data_a1335.Angle-prev_angle;
+			data_union.data_a1335.omega = PI+data_union.data_a1335.Angle-prev_angle;
 	}
 
 }
@@ -113,7 +114,7 @@ void computeAngularVelocity(void){
  */
 void readInputs(void) {
 	prev_angle = data_union.data_a1335.Angle;
-	data_union.data_a1335.Angle = (int16_t)angle_getAngle();
+	data_union.data_a1335.Angle = angle_getAngleRad();
 	computeAngularVelocity();
 }
 
@@ -134,7 +135,7 @@ void setOutputs(void) {
  * Send data, using a union predefinition.
  */
 void printDataUART(void) {
-	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 6);
+	Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 12);
 }
 
 void uart_init_intact(void) {
@@ -157,8 +158,8 @@ void uart_init_intact(void) {
 void UART2_IRQHandler(void) {
 	Chip_UART_RXIntHandlerRB(LPC_USART2, &rbRx);//pone los datos que se mandan por UART en el ring buffer
 	uint8_t data_array[2] = { 0 };
-	Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2);
-	data_union.data_a1335.dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
+	Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 1);
+	data_union.data_a1335.dacValue = (float)data_array[0];
 }
 /* ----------------------------- SysTick Handler----------------------------*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
