@@ -206,7 +206,7 @@ int main(void) {
 		//delay
 		//StopWatch_DelayMs(20);
 		StopWatch_DelayUs(SAMPLE_PERIOD_US);
-		//__WFI();
+		__WFI();
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
