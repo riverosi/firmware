@@ -1,0 +1,7 @@
+scu_18xx_43xx.h:199:20:Chip_SCU_I2C0PinConfig	16	static
+stopwatch.h:59:24:StopWatch_Elapsed	16	static
+stopwatch.h:126:20:StopWatch_DelayUs	24	static
+bno055_support.c:60:4:I2C_routine	8	static
+bno055_support.c:92:4:BNO055_I2C_bus_write	48	static
+bno055_support.c:149:4:BNO055_I2C_bus_read	48	static
+bno055_support.c:193:6:BNO055_delay_msek	16	static

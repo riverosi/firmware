@@ -74,6 +74,7 @@
 #define UART_BAUDRATE 230400
 #define SAMPLE_PERIOD_US 1000
 #define PI 3.14159265358
+#define W_MAX 0.337837837838 // 75/3.7 the dc motor operates at most at 75 rpm and it has a reduccion relation of 3.7
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
@@ -99,7 +100,7 @@ uint8_t rxBuff[BUFFLEN]; //array data for ring buffer
  */
 void computeAngularVelocity(void){
 	data_union.data_a1335.omega  = data_union.data_a1335.Angle - prev_angle;
-	if (abs(data_union.data_a1335.omega )> 3)
+	if (abs(data_union.data_a1335.omega )> W_MAX /(1000000/SAMPLE_PERIOD_US)) // terminar de corregir aca
 	{
 		if(data_union.data_a1335.Angle>prev_angle)
 			data_union.data_a1335.omega = -PI+data_union.data_a1335.Angle-prev_angle;
@@ -182,26 +183,30 @@ int main(void) {
 	uart_init_intact();
 	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
 	Init_Leds();
+	GPIOInit(GPIO1,GPIO_OUTPUT);
 	pwmInit(0,PWM_ENABLE); // Enable pwm
 	pwmInit(PWM5, PWM_ENABLE_OUTPUT);/*T_COL1 PWM*/
+
 	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
-	SysTick_Config(SystemCoreClock / 100); /*call systick every 10 ms*/
+	SysTick_Config(SystemCoreClock / 1000); /*call systick every 10 ms*/
 
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 		//read sensors data
-		readInputs();
+		GPIOOn(GPIO1);
+		readInputs(); // at most 2kHz.
 		//Compute
 		calculate();
 		//Update outputs
 		setOutputs();
 		//print UART values
 		printDataUART();
+		GPIOOff(GPIO1);
 		//delay
 		//StopWatch_DelayMs(20);
 		StopWatch_DelayUs(SAMPLE_PERIOD_US);
-		__WFI();
+		//__WFI();
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
