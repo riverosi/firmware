@@ -45,9 +45,10 @@
  */
 #define T_ANGLE_P    const uint8_t*
 
+
 /** @defgroup ANGLE_COMPILE Compilation Config */              /** @{ */
 
-#define   __ANGLE_DRV_I2C__                            /**<     @macro __ANGLE_DRV_I2C__  @brief I2C driver selector */
+#define   __ANGLE_DRV_I2C__   1                         /**<     @macro __ANGLE_DRV_I2C__  @brief I2C driver selector */
 
                                                                        /** @} */
 /** @defgroup ANGLE_VAR Variables */                           /** @{ */
@@ -114,7 +115,7 @@ void angle_i2cDriverInit(uint32_t clkHz, uint8_t slave);
 
 
 /**
- * @brief Reads encoded Angle in degreeses
+ * @brief Reads encoded Angle in radians
  */
 float angle_getAngleRad();
 
@@ -127,14 +128,14 @@ uint16_t angle_getAngle();
  */
 uint16_t angle_getTemperature();
 /**
- * @brief Magnetic data in gauss
+ * @brief Magnetic data in Gauss
  */
 uint16_t angle_getMagnetics();
 /**
  * @brief Writes configuration to CTRL register
  *
  * Configuration data (setValue) consists of multiple settings:
-     Change Processor State, Hard reset, Soft Reset, Clear Status registar,
+     Change Processor State, Hard reset, Soft Reset, Clear Status register,
      Clear Extended Error register and Clear Error register.
  */
 void angle_setConfig(uint16_t setValue);

@@ -1,0 +1,3 @@
+dac_18xx_43xx.h:129:20:Chip_DAC_ConfigDAConverterControl	24	static
+sapi_dac.c:60:6:dacInit	16	static
+sapi_dac.c:92:6:dacWrite	16	static

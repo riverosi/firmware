@@ -71,10 +71,13 @@
 /*=====[Definition macros of private constants]==============================*/
 #define ANGLE_SENSOR_I2C_CLK 100000
 #define BUFFLEN 16
-#define UART_BAUDRATE 230400
+#define UART_BAUDRATE 460800//230400
 #define SAMPLE_PERIOD_US 1000
 #define PI 3.14159265358
-#define W_MAX 0.337837837838 // 75/3.7 the dc motor operates at most at 75 rpm and it has a reduccion relation of 3.7
+#define DELTA_THETA_MAX 0.337837837838/(1000000/SAMPLE_PERIOD_US) // 75/3.7 the dc motor operates at most at 75 rpm and it has a reduccion relation of 3.7
+// thus,
+#define AV_LEN 4
+#define __ANGLE_DRV_I2C__ 1
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
@@ -94,13 +97,14 @@ static float prev_angle = 0;
 RINGBUFF_T rbRx; //ring buffer
 uint8_t rxBuff[BUFFLEN]; //array data for ring buffer
 
+float w_hist[AV_LEN];
 /*=====[Definitions of private global variables]=============================*/
 /**
  * Computes angular velocity considering the sign
  */
 void computeAngularVelocity(void){
 	data_union.data_a1335.omega  = data_union.data_a1335.Angle - prev_angle;
-	if (abs(data_union.data_a1335.omega )> W_MAX /(1000000/SAMPLE_PERIOD_US)) // terminar de corregir aca
+	if (abs(data_union.data_a1335.omega )> DELTA_THETA_MAX ) // terminar de corregir aca
 	{
 		if(data_union.data_a1335.Angle>prev_angle)
 			data_union.data_a1335.omega = -PI+data_union.data_a1335.Angle-prev_angle;
@@ -114,8 +118,19 @@ void computeAngularVelocity(void){
  * Read sensors
  */
 void readInputs(void) {
+	float av_theta = 0;
 	prev_angle = data_union.data_a1335.Angle;
-	data_union.data_a1335.Angle = angle_getAngleRad();
+	for (unsigned int k = 1; k < AV_LEN;k++)
+	{
+		w_hist[k] = w_hist[k-1];
+	}
+	w_hist[0] = angle_getAngleRad();
+	for (unsigned int k = 0; k < AV_LEN;k++)
+	{
+		av_theta += w_hist[k];
+	}
+	av_theta = av_theta / AV_LEN ;
+	data_union.data_a1335.Angle = av_theta;//angle_getAngleRad();
 	computeAngularVelocity();
 }
 
@@ -189,6 +204,9 @@ int main(void) {
 
 	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
 	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
+	angle_setConfig(
+			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
+					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
 	SysTick_Config(SystemCoreClock / 1000); /*call systick every 10 ms*/
 
 	// ----- Repeat for ever -------------------------

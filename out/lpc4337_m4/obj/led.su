@@ -1,0 +1,11 @@
+scu_18xx_43xx.h:135:20:Chip_SCU_PinMuxSet	16	static
+scu_18xx_43xx.h:150:20:Chip_SCU_PinMux	24	static
+gpio_18xx_43xx.h:375:20:Chip_GPIO_SetPinOutHigh	16	static
+gpio_18xx_43xx.h:389:20:Chip_GPIO_ClearValue	24	static
+gpio_18xx_43xx.h:417:20:Chip_GPIO_SetPinOutLow	16	static
+gpio_18xx_43xx.h:445:20:Chip_GPIO_SetPinToggle	16	static
+led.c:130:9:Init_Leds	8	static
+led.c:169:9:Led_On	24	static
+led.c:210:9:Led_Off	24	static
+led.c:251:9:Led_Toggle	24	static
+led.c:293:9:Led_Off_All	16	static

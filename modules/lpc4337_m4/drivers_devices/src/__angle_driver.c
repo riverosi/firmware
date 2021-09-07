@@ -35,7 +35,7 @@ const uint8_t _ANGLE_EXTENDED_ERROR_REG = 0x26;
 const uint8_t _ANGLE_ERROR_REG = 0x24;
 const uint8_t _ANGLE_STATUS_REG = 0x22;
 
-const uint8_t _ANGLE_SETTINGS_REG = 0x1E;
+const uint8_t _ANGLE_SETTINGS_REG = 0x1C;//0x1E;
 
 /* Change Processor State */
 const uint16_t _ANGLE_CDS_NO_CHANGLE = 0x0000 << 13;
@@ -50,7 +50,7 @@ const uint16_t _ANGLE_HDR_RESET_1 = 0x0001 << 12;
 const uint16_t _ANGLE_SFR_RESET_0 = 0x0000 << 11;
 const uint16_t _ANGLE_SFR_RESET_1 = 0x0001 << 11;
 
-/* Clear Status registar */
+/* Clear Status register */
 const uint16_t _ANGLE_CSR_STA_0 = 0x0000 << 9;
 const uint16_t _ANGLE_CSR_STA_1 = 0x0001 << 9;
 
@@ -67,7 +67,7 @@ const uint16_t _ANGLE_CER_1 = 0x0001 << 7;
 /**
  * @brief hal_i2cWrite
  *
- * @param[in] slaveAddress     7 bit slave addres without 0 bit (read/write bit)
+ * @param[in] slaveAddress     7 bit slave address without 0 bit (read/write bit)
  * @param[in] pBuf             pointer to data buffer
  * @param[in] nBytes           number of bytes for writing
  * @param[in] endMode          END_MODE_STOP / END_MODE_RESTART / END_MODE_NO
@@ -91,7 +91,7 @@ static int hal_i2cWrite(uint8_t slaveAddress, uint8_t *pBuf, uint16_t nBytes);
 /**
  * @brief hal_i2cRead
  *
- * @param[in] slaveAddress     7 bit slave addres without 0 bit (read/write bit)
+ * @param[in] slaveAddress     7 bit slave address without 0 bit (read/write bit)
  * @param[in] pBuf             pointer to data buffer
  * @param[in] nBytes           number of bytes to read
  * @param[in] endMode          END_MODE_STOP / END_MODE_RESTART / END_MODE_NO
@@ -268,7 +268,7 @@ uint16_t angle_getStatus(uint8_t reg) {
 
 void angle_setConfig(uint16_t setValue) {
 	uint8_t writeReg[3];
-	writeReg[0] = 0x1E;
+	writeReg[0] = 0x1B;//0x1E;
 	writeReg[1] = setValue >> 8;
 	writeReg[2] = setValue & 0x00FF;
 	hal_i2cWrite(_slaveAddress, writeReg, 3);
