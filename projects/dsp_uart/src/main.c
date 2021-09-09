@@ -62,19 +62,34 @@
 #include "systemclock.h"
 
 /*=====[Inclusions of function dependencies]=================================*/
+// DSP libs
+#define ARM_MATH_CM4
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+#include "arm_const_structs.h"
+
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1/SISTICK_CALL_FREC in seconds*/
-#define BUFFLEN 128
+#define SISTICK_CALL_FREC	1000  // call SysTick every 1/1000Hz
+#define BLOCKSIZE  128
 #define UART_BAUDRATE 460800
+#define BUFF_UART_LEN 4*BLOCKSIZE
+
 /*=====[Definitions of extern global variables]==============================*/
+uint32_t blockSize = BLOCKSIZE;
+bool dataReady = FALSE;
+RINGBUFF_T rbRx;
 
 /*=====[Definitions of public global variables]==============================*/
-RINGBUFF_T rbRx;
-uint8_t rxBuff[BUFFLEN];
-uint16_t dacValue;
+static union {
+	/** Union data for stream in UART*/
+	float32_t testInput_f32[BLOCKSIZE];
+	uint8_t rxBuff[BUFF_UART_LEN];
+} data_union;
 
 /*=====[Definitions of private global variables]=============================*/
+
+
 void uart_init_intact(void) {
 	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
 	Chip_SCU_PinMuxSet(7, 2,
@@ -93,34 +108,50 @@ void uart_init_intact(void) {
 
 void UART2_IRQHandler(void) {
 	Chip_UART_RXIntHandlerRB(LPC_USART2, &rbRx);//pone los datos que se mandan por UART en el ring buffer
-	uint8_t data_array[2] = { 0 };
-	Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2);
-	dacValue = (((uint16_t) data_array[0]) << 8) | data_array[1];
-	dacWrite(dacValue & 0x03FF);
+	if ( RingBuffer_IsFull(&rbRx) )
+	{
+		Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_union.rxBuff, BUFF_UART_LEN);
+		RingBuffer_Flush(&rbRx);
+		dataReady = TRUE;
+	}
 }
+
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
 void SysTick_Handler(void) {
 	cnt++;
-	if ((cnt)%100 == 0) {
-		GPIOToggle(LED1);
+	if ((cnt)%500 == 0) {
+		Led_Toggle(RGB_B_LED);
 	}
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
+
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
 	uart_init_intact();
 	Init_Leds();
-	dacInit(DAC_ENABLE);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
+	RingBuffer_Init(&rbRx, data_union.rxBuff, 1, BUFF_UART_LEN);
+	RingBuffer_Flush(&rbRx);
+	float rms, power, max, min, mean;
+	uint32_t idmax, idmin;
 	// ----- Repeat for ever -------------------------
-	for (;;)
-	{
-
+	for(;;) {
+		if (dataReady)
+		{
+			Led_Toggle(RED_LED);
+			arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
+			arm_power_f32(&data_union.testInput_f32, blockSize, &power);
+			power = power/BLOCKSIZE;//read the documentation the power is not normalized
+			arm_max_f32(&data_union.testInput_f32, blockSize, &max, &idmax);
+			arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
+			arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
+			dataReady = FALSE;
+		}
+		//__WFI(); //uncomment for low power apps
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

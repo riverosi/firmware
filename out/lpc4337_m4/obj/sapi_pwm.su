@@ -1,7 +1,0 @@
-sapi_pwm.c:126:13:pwmInitTimers	8	static
-sapi_pwm.c:136:13:pwmAttach	24	static
-sapi_pwm.c:159:13:pwmDetach	24	static
-sapi_pwm.c:182:6:pwmWrite	24	static
-sapi_pwm.c:204:9:pwmRead	24	static
-sapi_pwm.c:226:6:pwmInit	24	static
-sapi_pwm.c:262:9:pwmIsAttached	24	static
