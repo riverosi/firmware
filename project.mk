@@ -40,7 +40,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
-#test_nrf24_loadcells
 PROJECT = projects/dsp_uart
 TARGET = lpc4337_m4
 BOARD = edu_ciaa_nxp

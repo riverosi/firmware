@@ -121,7 +121,7 @@ static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
 void SysTick_Handler(void) {
 	cnt++;
 	if ((cnt)%500 == 0) {
-		Led_Toggle(RGB_B_LED);
+		Led_Toggle(RGB_R_LED);
 	}
 }
 /*=====[Main function, program entry point after power on or reset]==========*/

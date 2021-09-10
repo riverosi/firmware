@@ -104,7 +104,7 @@ CFLAGS  := -Wall -ggdb3 -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 \
 # Linking flags
 LFLAGS  := -nostdlib -fno-builtin -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 \
            -mfloat-abi=hard -Xlinker -Map=$(OUT_PATH)/$(PROJECT_NAME).map \
-			  -Wl,--gc-sections
+			  -Wl,--gc-sections,--print-memory-usage
 
 # Linker scripts
 ifndef LINK_RAM
