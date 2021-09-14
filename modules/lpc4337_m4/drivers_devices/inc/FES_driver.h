@@ -60,11 +60,10 @@ Source: A Comparative Study on Control Strategies for FES Cycling Using a Detail
 
 /*=====[Definitions of public data types]====================================*/
 typedef struct {
-	uint8_t channelEnable;/**!< mask of channels enables is FES*/
-	uint8_t duty[NUMBER_CHANNELS];/**!< Duty Cycle for every channel*/
-	uint8_t channelAmplitude[NUMBER_CHANNELS];/**!< Current Amplitude for every channel*/
-	/* TODO: check*/
-	uint8_t frecuency; /*Verificar frecuencia por si necesita cambiar para el reflejo de retirada*/
+	uint8_t channelEnable;						/**!< mask of channels enables is FES*/
+	uint8_t duty[NUMBER_CHANNELS];				/**!< Duty Cycle for every channel*/
+	uint8_t channelAmplitude[NUMBER_CHANNELS];	/**!< Current Amplitude for channel*/
+	uint8_t frecuency; 							/**!< Frequency*/
 } dataFES_t;
 
 typedef enum {

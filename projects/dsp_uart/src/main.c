@@ -89,7 +89,6 @@ static union {
 
 /*=====[Definitions of private global variables]=============================*/
 
-
 void uart_init_intact(void) {
 	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
 	Chip_SCU_PinMuxSet(7, 2,
@@ -133,6 +132,7 @@ int main(void) {
 	StopWatch_Init();
 	uart_init_intact();
 	Init_Leds();
+	GPIOInit(LCD1 , GPIO_OUTPUT);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	RingBuffer_Init(&rbRx, data_union.rxBuff, 1, BUFF_UART_LEN);
 	RingBuffer_Flush(&rbRx);
@@ -142,7 +142,7 @@ int main(void) {
 	for(;;) {
 		if (dataReady)
 		{
-			Led_Toggle(RED_LED);
+			GPIOOn(LCD1);
 			arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
 			arm_power_f32(&data_union.testInput_f32, blockSize, &power);
 			power = power/BLOCKSIZE;//read the documentation the power is not normalized
@@ -150,6 +150,7 @@ int main(void) {
 			arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
 			arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
 			dataReady = FALSE;
+			GPIOOff(LCD1);
 		}
 		//__WFI(); //uncomment for low power apps
 	}
