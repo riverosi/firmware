@@ -145,6 +145,8 @@ int main(void) {
 			Led_Toggle(RED_LED);
 			GPIOOn(LCD1);
 			uint16_t var = 0;
+			uint32_t cycles_enlapsed;
+			DWTStart();
 			for (var = 0; var < 1000; ++var) {
 				arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
 				//arm_power_f32(&data_union.testInput_f32, blockSize, &power);
@@ -153,6 +155,7 @@ int main(void) {
 				//arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
 				//arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
 			}
+			cycles_enlapsed = DWTStop();
 			GPIOOff(LCD1);
 			dataReady = FALSE;
 		}

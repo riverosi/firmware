@@ -1,7 +1,8 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
- * All rights reserved.
+/*  Created on: 15 sept. 2021
+ *      Author: Ignacio Riveros
+ * Copyright 2021,
  *
- * This file is part of CIAA Firmware.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,58 +32,21 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
- **
- ** This is a mini example of the CIAA Firmware
- **
- **/
 
-/** \addtogroup CIAA_Firmware CIAA Firmware
- ** @{ */
-/** \addtogroup Examples CIAA Firmware Examples
- ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
- ** @{ */
+#ifndef MODULES_LPC4337_M4_DRIVERS_MICROCONTROLLER_INC_DWT_H_
+#define MODULES_LPC4337_M4_DRIVERS_MICROCONTROLLER_INC_DWT_H_
 
-/*
- * Initials     Name
- * ---------------------------
- *
+#include "chip.h"
+
+/**
+ * Start count in Data Watchpoint and Trace (DWT) registers.
+*/
+void DWTStart(void);
+
+/**
+ * Stop count and return value in cycles
+ * \return number of cycles of clock
  */
+uint32_t DWTStop(void);
 
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * yyyymmdd v0.0.1 initials initial version
- */
-
-/*==================[inclusions]=============================================*/
-#include <stdint.h>
-#include "led.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "dwt.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int main(void);
-
-/*==================[cplusplus]==============================================*/
-
-#ifdef __cplusplus
-}
-#endif
-
-/*==================[external functions declaration]=========================*/
-
-
-/*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
-
+#endif /* MODULES_LPC4337_M4_DRIVERS_MICROCONTROLLER_INC_DWT_H_ */
