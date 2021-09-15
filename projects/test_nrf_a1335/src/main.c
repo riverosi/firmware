@@ -80,7 +80,6 @@
 #define SYSTICK_CALL_FREC	100  /*call SysTick every 10ms 1/100Hz*/
 #define ANGLE_I2C_CLK 100000
 
-
 typedef struct {
 	float force_node; /** <= force in [Kg]*/
 	float time_node; /** <= time in [ms]*/
@@ -92,6 +91,10 @@ typedef struct {
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
+static nrf24l01_t RX;
+static nrf24l01p_pedal_data RX_data[2] = { 0 };
+static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
+static volatile bool flag_serial_data_print = FALSE; /** Flag for print data in serial port*/
 
 /*=====[Definitions of extern global variables]==============================*/
 
@@ -103,11 +106,22 @@ void Init_Hardware(void) {
 	Init_Switches();
 	Init_Leds();
 	StopWatch_DelayMs(100);
-	angle_i2cDriverInit(ANGLE_I2C_CLK, 0x0C);
-	angle_setConfig(
-			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
-					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);
+	angle_i2cDriverInit(ANGLE_I2C_CLK, ANGLE_SA0SA1_00);
 	dacInit(DAC_ENABLE);
+	//nrf configurations
+	RX.spi.cfg = nrf24l01_spi_default_cfg;
+	RX.cs = GPIO1;
+	RX.ce = GPIO3;
+	RX.irq = GPIO5;
+	RX.mode = PRX;
+	RX.en_ack_pay = FALSE;
+	Nrf24Init(&RX);
+	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
+	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
+	Nrf24EnableRxMode(&RX); /* Enable RX mode */
+	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
+
 }
 void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	/* Protocol Serial:
@@ -119,14 +133,11 @@ void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
 			sizeof(float));
 }
-void clear_array(void) {
+void flushDataNrf(void) {
 	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
 }
 /*=====[Definitions of public global variables]=============================*/
-/** Variable used for SysTick Counter */
-static volatile uint32_t cnt = 0;
-/** Flag for print data in serial port*/
-static volatile bool flag_serial_data_print = FALSE;
+
 /*==================[SystickHandler]=========================================*/
 void SysTick_Handler(void) {
 	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
@@ -145,27 +156,10 @@ int main(void) {
 	SystemClockInit();
 	Init_Hardware();
 
-	nrf24l01_t RX;
-	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = GPIO1;
-	RX.ce = GPIO3;
-	RX.irq = GPIO5;
-	RX.mode = PRX;
-	RX.en_ack_pay = FALSE;
-
-	Nrf24Init(&RX);
-	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
-	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
-	Nrf24EnableRxMode(&RX); /* Enable RX mode */
-	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
-
-	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
-
 	float float_data = 0.0f;
 	/* RX_data[0] Store Pedal Left data
 	 * RX_data[1] Store Pedal Rigth data
 	 */
-	nrf24l01p_pedal_data RX_data[2] = { 0 };
 	uint16_t angle;
 
 	for(;;) {
@@ -200,9 +194,7 @@ int main(void) {
 			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
 
-		clear_array();
-
-		__WFI();
+		flushDataNrf();
 
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */

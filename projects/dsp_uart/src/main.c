@@ -142,15 +142,19 @@ int main(void) {
 	for(;;) {
 		if (dataReady)
 		{
+			Led_Toggle(RED_LED);
 			GPIOOn(LCD1);
-			arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
-			arm_power_f32(&data_union.testInput_f32, blockSize, &power);
-			power = power/BLOCKSIZE;//read the documentation the power is not normalized
-			arm_max_f32(&data_union.testInput_f32, blockSize, &max, &idmax);
-			arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
-			arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
-			dataReady = FALSE;
+			uint16_t var = 0;
+			for (var = 0; var < 1000; ++var) {
+				arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
+				//arm_power_f32(&data_union.testInput_f32, blockSize, &power);
+				//power = power/BLOCKSIZE;//read the documentation the power is not normalized
+				//arm_max_f32(&data_union.testInput_f32, blockSize, &max, &idmax);
+				//arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
+				//arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
+			}
 			GPIOOff(LCD1);
+			dataReady = FALSE;
 		}
 		//__WFI(); //uncomment for low power apps
 	}

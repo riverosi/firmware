@@ -106,17 +106,17 @@ void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	 * length: 1 + 4*N bytes
 	 * |0xFF|4 x data_float|....|4 x data_float|
 	 */
-		Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
-		Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
-		Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
-				sizeof(float));
+	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
+	Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
+	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
+			sizeof(float));
 }
 void clear_array(void) {
 	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
 }
 /*=====[Definitions of public global variables]=============================*/
 /** Variable used for SysTick Counter */
-static  volatile uint32_t cnt = 0;
+static volatile uint32_t cnt = 0;
 /** Flag for print data in serial port*/
 static volatile bool flag_serial_data_print = FALSE;
 /*==================[SystickHandler]=========================================*/
@@ -189,13 +189,11 @@ int main(void) {
 
 		clear_array();
 
-		__WFI();
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
 
 	return 0;
 }
-
 
 /** @} doxygen end group definition */
 /** @} doxygen end group definition */

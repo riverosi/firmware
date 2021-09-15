@@ -157,7 +157,7 @@ static int hal_i2cRead(uint8_t i2cSlaveAddress, uint8_t* dataToReadBuffer,
 
 #ifdef   __ANGLE_DRV_I2C__
 
-void angle_i2cDriverInit(uint32_t clkHz, uint8_t slave) {
+void angle_i2cDriverInit(uint32_t clkHz, angle_address_t slave) {
 
 	_slaveAddress = slave;
 	Chip_SCU_I2C0PinConfig(I2C0_STANDARD_FAST_MODE);
