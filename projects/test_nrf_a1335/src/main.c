@@ -140,7 +140,7 @@ void flushDataNrf(void) {
 
 /*==================[SystickHandler]=========================================*/
 void SysTick_Handler(void) {
-	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
+	if ((cnt % 1) == 0) { /*flag change every 50 ms*/
 		flag_serial_data_print = TRUE;
 	}
 	if (cnt == 50) { /*LED3 toggle every 500 ms*/

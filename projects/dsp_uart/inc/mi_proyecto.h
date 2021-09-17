@@ -66,6 +66,7 @@
 #include "UART.h"
 #include "stopwatch.h"
 #include "dwt.h"
+#include "dsp_EMG.h"
 
 
 #ifdef __cplusplus

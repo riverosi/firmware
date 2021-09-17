@@ -136,8 +136,7 @@ int main(void) {
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	RingBuffer_Init(&rbRx, data_union.rxBuff, 1, BUFF_UART_LEN);
 	RingBuffer_Flush(&rbRx);
-	float rms, power, max, min, mean;
-	uint32_t idmax, idmin;
+	float rms, power, ptp;
 	// ----- Repeat for ever -------------------------
 	for(;;) {
 		if (dataReady)
@@ -148,12 +147,9 @@ int main(void) {
 			uint32_t cycles_enlapsed;
 			DWTStart();
 			for (var = 0; var < 1000; ++var) {
-				arm_rms_f32(&data_union.testInput_f32, blockSize, &rms);
-				//arm_power_f32(&data_union.testInput_f32, blockSize, &power);
-				//power = power/BLOCKSIZE;//read the documentation the power is not normalized
-				//arm_max_f32(&data_union.testInput_f32, blockSize, &max, &idmax);
-				//arm_min_f32(&data_union.testInput_f32, blockSize, &min, &idmin);
-				//arm_mean_f32(&data_union.testInput_f32, blockSize, &mean);
+				dsp_emg_rms_f32(&data_union.testInput_f32, blockSize, &rms);
+				dsp_emg_power_f32(&data_union.testInput_f32, blockSize, &power);
+				dsp_emg_ptp_f32(&data_union.testInput_f32, blockSize, &ptp);
 			}
 			cycles_enlapsed = DWTStop();
 			GPIOOff(LCD1);

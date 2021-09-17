@@ -59,22 +59,18 @@
 
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
+#include "signal.h"
 #include "systemclock.h"
 
 /*=====[Inclusions of function dependencies]=================================*/
-// DSP libs
-#define ARM_MATH_CM4
-#define __FPU_PRESENT 1
-#include "arm_math.h"
-#include "arm_const_structs.h"
-#include "signal.h"
+
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  // call SysTick every 1/1000Hz
-#define BLOCKSIZE  88
-#define UART_BAUDRATE 460800
+#define BLOCKSIZE  128
+#define UART_BAUDRATE 115200
 
 /*=====[Definitions of extern global variables]==============================*/
-extern float32_t testInput_f32[BLOCKSIZE];
+extern const float32_t testInput_f32[BLOCKSIZE];
 uint32_t blockSize = BLOCKSIZE;
 
 /*=====[Definitions of public global variables]==============================*/
@@ -87,7 +83,7 @@ uint32_t blockSize = BLOCKSIZE;
 static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
 void SysTick_Handler(void) {
 	cnt++;
-	if ((cnt)%500 == 0) {
+	if ((cnt) % 500 == 0) {
 		Led_Toggle(RGB_B_LED);
 	}
 }
@@ -100,18 +96,44 @@ int main(void) {
 	Init_Uart_Ftdi(UART_BAUDRATE);
 	Init_Leds();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float rms, power, max, min, mean;
-	uint32_t idmax, idmin;
+	float rms, power, ptp, iemg;
+
+	union {/** Union data for stream in UART*/
+		uint32_t cycles_enlapsed;
+		uint8_t rxBuff[4];
+	} data_union;
+
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 
-		arm_rms_f32(&testInput_f32, blockSize, &rms);
-		arm_power_f32(&testInput_f32, blockSize, &power);
-		arm_max_f32(&testInput_f32, blockSize, &max, &idmax);
-		arm_min_f32(&testInput_f32, blockSize, &min, &idmin);
-		arm_mean_f32(&testInput_f32, blockSize, &mean);
+		DWTStart();
+		for (int var = 0; var < 1000; ++var) {
+			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
+		}
+		data_union.cycles_enlapsed = DWTStop();
+		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
 
-		//__WFI(); //uncomment for low power apps
+		DWTStart();
+		for (int var = 0; var < 1000; ++var) {
+			dsp_emg_power_f32(testInput_f32, blockSize, &power);
+		}
+		data_union.cycles_enlapsed = DWTStop();
+		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
+		DWTStart();
+		for (int var = 0; var < 1000; ++var) {
+			dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
+		}
+		data_union.cycles_enlapsed = DWTStop();
+		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
+		DWTStart();
+		for (int var = 0; var < 1000; ++var) {
+			dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
+		}
+		data_union.cycles_enlapsed = DWTStop();
+		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
