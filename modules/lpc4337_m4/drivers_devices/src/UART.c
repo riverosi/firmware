@@ -155,7 +155,7 @@ uint32_t Init_Uart_Rs485(void) {
 
 	/* UART0 (RS485/Profibus) */
 	Chip_UART_Init(RS485_UART);
-	Chip_UART_SetBaud(RS485_UART, 115200);
+	Chip_UART_SetBaud(RS485_UART, 921600);
 
 	Chip_UART_SetupFIFOS(RS485_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
 
