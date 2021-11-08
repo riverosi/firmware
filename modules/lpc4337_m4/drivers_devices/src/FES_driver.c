@@ -53,7 +53,7 @@ uint8_t sendDataFES(dataFES_t* data) {
 
 uint8_t initFES(void) {
 	Init_Uart_Rs485();
-	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SENSOR_I2C_ADR); /* TODO enum in class*/
+	angle_i2cDriverInit(ANGLE_SENSOR_I2C_ADR); /* TODO enum in class*/
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);

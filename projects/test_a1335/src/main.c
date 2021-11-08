@@ -203,7 +203,7 @@ int main(void) {
 	pwmInit(PWM5, PWM_ENABLE_OUTPUT);/*T_COL1 PWM*/
 
 	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
-	angle_i2cDriverInit(ANGLE_SENSOR_I2C_CLK, ANGLE_SA0SA1_00);
+	angle_i2cDriverInit(ANGLE_SA0SA1_00);
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
 					| _ANGLE_CSR_STA_1 | _ANGLE_CXE_1 | _ANGLE_CER_1);

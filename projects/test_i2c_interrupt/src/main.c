@@ -60,24 +60,21 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include <string.h>
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-#define ARRAY_SIZE 8
 /*=====[Definitions of extern global variables]==============================*/
-
+static union {
+	/** Union data for stream in UART*/
+	uint16_t angle;
+	uint8_t buffer_string[2];
+} data_union;
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
-
-
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
-/**
- * Only for blinky
- */
 void SysTick_Handler(void) {
 	if (cnt == 500) {
 		Led_Toggle(RGB_G_LED);
@@ -86,20 +83,21 @@ void SysTick_Handler(void) {
 	cnt++;
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
+
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
 	Init_Leds();
-	Init_Uart_Rs485();
+	angle_i2cDriverInit(ANGLE_SA0SA1_00);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint8_t data_array[ARRAY_SIZE] = {0};
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		SendStringRs485(data_array, ARRAY_SIZE);
-		StopWatch_DelayMs(1);
+		data_union.angle = angle_getAngle();
+		Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 2);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

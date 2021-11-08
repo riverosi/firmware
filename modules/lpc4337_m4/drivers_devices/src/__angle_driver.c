@@ -15,6 +15,8 @@
 #include <chip.h>
 #include "stopwatch.h"
 #define PI 3.14159265358
+#define I2C_SPEED_100KHZ         100000
+#define I2C_SPEED_400KHZ         400000
 /* ------------------------------------------------------------------- MACROS */
 
 /* ---------------------------------------------------------------- VARIABLES */
@@ -26,6 +28,7 @@
  */
 #ifdef   __ANGLE_DRV_I2C__
 static uint8_t _slaveAddress;
+static I2CM_XFER_T  i2cmXferRec;
 #endif
 
 /* Error register status */
@@ -35,7 +38,7 @@ const uint8_t _ANGLE_EXTENDED_ERROR_REG = 0x26;
 const uint8_t _ANGLE_ERROR_REG = 0x24;
 const uint8_t _ANGLE_STATUS_REG = 0x22;
 
-const uint8_t _ANGLE_SETTINGS_REG = 0x1C;//0x1E;
+const uint8_t _ANGLE_SETTINGS_REG = 0x1C; //0x1E;
 
 /* Change Processor State */
 const uint16_t _ANGLE_CDS_NO_CHANGLE = 0x0000 << 13;
@@ -63,107 +66,60 @@ const uint16_t _ANGLE_CER_0 = 0x0000 << 7;
 const uint16_t _ANGLE_CER_1 = 0x0001 << 7;
 
 /* -------------------------------------------- PRIVATE FUNCTION DECLARATIONS */
+void I2C0_IRQHandler(void);
 
-/**
- * @brief hal_i2cWrite
- *
- * @param[in] slaveAddress     7 bit slave address without 0 bit (read/write bit)
- * @param[in] pBuf             pointer to data buffer
- * @param[in] nBytes           number of bytes for writing
- * @param[in] endMode          END_MODE_STOP / END_MODE_RESTART / END_MODE_NO
- *
- * @return    0                No Error
- *
- * Function should executes write sequence on I2C bus.
- *
- * |       8 Bits      | Write Sequence (n Bytes) | End Mode       |
- * |:-----------------:|:------------------------:|:--------------:|
- * | Slave Address + W | Data Bytes               | Stop / Restart |
- *
- * @note
- * This function alongside with hal_i2cStart represents complete write sequence.
- *
- * @warning
- * No End mode is not possible on all architectures.
- */
-static int hal_i2cWrite(uint8_t slaveAddress, uint8_t *pBuf, uint16_t nBytes);
-
-/**
- * @brief hal_i2cRead
- *
- * @param[in] slaveAddress     7 bit slave address without 0 bit (read/write bit)
- * @param[in] pBuf             pointer to data buffer
- * @param[in] nBytes           number of bytes to read
- * @param[in] endMode          END_MODE_STOP / END_MODE_RESTART / END_MODE_NO
- *
- * @return    0                No Error
- *
- * Function should executes read sequence on I2C bus.
- *
- * |       8 Bits      | Read Sequence (n Bytes)  | End Mode       |
- * |:-----------------:|:------------------------:|:--------------:|
- * | Slave Address + R | Data Bytes + ACK/NACK    | Stop / Restart |
- *
- * @note
- * This function alongside with hal_i2cStart represents complete read sequence.
- *
- * @warning
- * No End mode is not possible on all architectures.
- */
-static int hal_i2cRead(uint8_t i2cSlaveAddress, uint8_t* dataToReadBuffer,
-		uint16_t dataToReadBufferSize, uint8_t* receiveDataBuffer,
-		uint16_t receiveDataBufferSize);
-
-/* --------------------------------------------- PRIVATE FUNCTION DEFINITIONS */
-static int hal_i2cWrite(uint8_t slaveAddress, uint8_t *pBuf, uint16_t nBytes) {
-
-	I2CM_XFER_T i2cData;
-
-	// Prepare the i2cData register
-	i2cData.slaveAddr = slaveAddress;
-	i2cData.options = 0;
-	i2cData.status = 0;
-	i2cData.txBuff = pBuf;
-	i2cData.txSz = nBytes;
-	i2cData.rxBuff = 0;
-	i2cData.rxSz = 0;
-
-	/* Send the i2c data */
-	if (Chip_I2CM_XferBlocking(LPC_I2C0, &i2cData) == 0) {
-		return -1;
+/* Function to wait for I2CM transfer completion */
+static void WaitForI2cXferComplete(I2CM_XFER_T *xferRecPtr)
+{
+	/* Test for still transferring data */
+	while (xferRecPtr->status == I2CM_STATUS_BUSY) {
+		/* Sleep until next interrupt */
+		__WFI();
 	}
-
-	return 0;
 }
-static int hal_i2cRead(uint8_t i2cSlaveAddress, uint8_t* dataToReadBuffer,
-		uint16_t dataToReadBufferSize, uint8_t* receiveDataBuffer,
-		uint16_t receiveDataBufferSize) {
-	I2CM_XFER_T i2cData;
 
-	i2cData.slaveAddr = i2cSlaveAddress;
-	i2cData.options = 0;
-	i2cData.status = 0;
-	i2cData.txBuff = dataToReadBuffer;
-	i2cData.txSz = dataToReadBufferSize;
-	i2cData.rxBuff = receiveDataBuffer;
-	i2cData.rxSz = receiveDataBufferSize;
+/* Function to setup and execute I2C transfer request */
+static void SetupXferRecAndExecute(uint8_t devAddr,
+								   uint8_t *txBuffPtr,
+								   uint16_t txSize,
+								   uint8_t *rxBuffPtr,
+								   uint16_t rxSize)
+{
+	/* Setup I2C transfer record */
+	i2cmXferRec.slaveAddr = devAddr;
+	i2cmXferRec.options = 0;
+	i2cmXferRec.status = 0;
+	i2cmXferRec.txSz = txSize;
+	i2cmXferRec.rxSz = rxSize;
+	i2cmXferRec.txBuff = txBuffPtr;
+	i2cmXferRec.rxBuff = rxBuffPtr;
+	Chip_I2CM_Xfer(LPC_I2C0, &i2cmXferRec);
 
-	if (Chip_I2CM_XferBlocking( LPC_I2C0, &i2cData) == 0) {
-		return -1;
-	}
-	return 0;
+	/* Wait for transfer completion */
+	WaitForI2cXferComplete(&i2cmXferRec);
 }
 /* --------------------------------------------------------- PUBLIC FUNCTIONS */
 
 #ifdef   __ANGLE_DRV_I2C__
 
-void angle_i2cDriverInit(uint32_t clkHz, angle_address_t slave) {
+/**
+ * @brief	Handle I2C0 interrupt by calling I2CM interrupt transfer handler
+ * @return	Nothing
+ */
+void I2C0_IRQHandler(void)
+{
+	/* Call I2CM ISR function with the I2C device and transfer rec */
+	Chip_I2CM_XferHandler(LPC_I2C0, &i2cmXferRec);
+}
+
+void angle_i2cDriverInit(angle_address_t slave) {
 
 	_slaveAddress = slave;
 	Chip_SCU_I2C0PinConfig(I2C0_STANDARD_FAST_MODE);
 	Chip_I2C_Init(I2C0);
-	Chip_I2C_SetClockRate(I2C0, clkHz);
-	Chip_I2C_SetMasterEventHandler(I2C0, Chip_I2C_EventHandlerPolling);
+	Chip_I2C_SetClockRate(I2C0, I2C_SPEED_100KHZ);
+	Chip_I2C_SetMasterEventHandler(I2C0, Chip_I2C_EventHandler);
+	NVIC_EnableIRQ(I2C0_IRQn);
 	StopWatch_Init();
 	angle_setConfig(
 			_ANGLE_CDS_NO_CHANGLE | _ANGLE_HDR_RESET_1 | _ANGLE_SFR_RESET_1
@@ -173,7 +129,7 @@ void angle_i2cDriverInit(uint32_t clkHz, angle_address_t slave) {
 #endif
 
 /* ----------------------------------------------------------- IMPLEMENTATION */
-float angle_getAngleRad(){
+float angle_getAngleRad() {
 	uint8_t writeReg[1];
 	uint8_t readReg[2];
 	uint16_t angle;
@@ -181,13 +137,13 @@ float angle_getAngleRad(){
 
 	writeReg[0] = 0x20;
 
-	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 1 , readReg, 2);
 
 	angle = readReg[0];
 	angle <<= 8;
 	angle |= readReg[1];
 	angle &= 0x0FFF;
-	AngleVal = (float)(angle * ((2*PI) / 4096.0));
+	AngleVal = (float) (angle * ((2 * PI) / 4096.0));
 
 	return AngleVal;
 }
@@ -200,7 +156,7 @@ uint16_t angle_getAngle() {
 
 	writeReg[0] = 0x20;
 
-	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 1 , readReg, 2);
 
 	angle = readReg[0];
 	angle <<= 8;
@@ -219,7 +175,7 @@ uint16_t angle_getTemperature() {
 
 	writeReg[0] = 0x28;
 
-	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 1 , readReg, 2);
 
 	temp = readReg[0];
 	temp <<= 8;
@@ -238,7 +194,7 @@ uint16_t angle_getMagnetics() {
 
 	writeReg[0] = 0x2A;
 
-	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 1 , readReg, 2);
 
 	magnet = readReg[0];
 	magnet <<= 8;
@@ -256,7 +212,7 @@ uint16_t angle_getStatus(uint8_t reg) {
 
 	writeReg[0] = reg;
 
-	hal_i2cRead(_slaveAddress, writeReg, 1 , readReg, 2);
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 1 , readReg, 2);
 
 	status = readReg[0];
 	status <<= 8;
@@ -268,11 +224,12 @@ uint16_t angle_getStatus(uint8_t reg) {
 
 void angle_setConfig(uint16_t setValue) {
 	uint8_t writeReg[3];
-	writeReg[0] = 0x1B;//0x1E;
+	writeReg[0] = 0x1B; //0x1E;
 	writeReg[1] = setValue >> 8;
 	writeReg[2] = setValue & 0x00FF;
-	hal_i2cWrite(_slaveAddress, writeReg, 3);
-	StopWatch_DelayMs(100);
+
+	SetupXferRecAndExecute(_slaveAddress, writeReg, 3, NULL, 0 );
+	StopWatch_DelayMs(10);
 }
 
 /* -------------------------------------------------------------------------- */

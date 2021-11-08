@@ -194,7 +194,7 @@ int main(void) {
 			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
 
-		flushDataNrf();
+		//flushDataNrf();
 
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */

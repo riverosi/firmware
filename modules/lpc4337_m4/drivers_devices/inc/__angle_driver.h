@@ -106,7 +106,7 @@ extern "C"{
 
 
 #ifdef   __ANGLE_DRV_I2C__
-void angle_i2cDriverInit(uint32_t clkHz, angle_address_t slave);
+void angle_i2cDriverInit(angle_address_t slave);
 #endif
 
 
