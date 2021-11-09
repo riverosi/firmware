@@ -102,8 +102,9 @@
 /*==================[external functions definition]==========================*/
 /** \brief ADC Initialization method  */
 uint32_t Init_Uart_Ftdi(int32_t baudios) {
+	uint32_t ret = 0;
 	Chip_UART_Init(USB_UART);
-	Chip_UART_SetBaud(USB_UART, baudios);
+	ret = Chip_UART_SetBaudFDR(USB_UART, baudios);
 	Chip_UART_ConfigData( USB_UART,
 		UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
 	Chip_UART_SetupFIFOS(USB_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
@@ -115,7 +116,7 @@ uint32_t Init_Uart_Ftdi(int32_t baudios) {
 	Chip_SCU_PinMux(UART_USB_RXD_MUX_GROUP, UART_USB_RXD_MUX_PIN,
 	MD_PLN | MD_EZI | MD_ZI, FUNC6); /* P7_2: UART2_RXD */
 
-	return TRUE;
+	return ret;
 }
 
 /** \brief UART Initialization method  */
@@ -142,22 +143,13 @@ uint32_t Init_Uart_Ftdi_IntAct(int32_t baudios) {
 
 uint32_t Init_Uart_Rs485(void) {
 
-	/** \details
-	 * This function initialize the ADC peripheral in the EDU-CIAA board,
-	 * with the correct parameters with LPCOpen library. It uses CH1
-	 *
-	 * \param none
-	 *
-	 * \return uint8_t: TBD (to support errors in the init function)
-	 * */
-
-	/*UART initialization*/
-
 	/* UART0 (RS485/Profibus) */
 	Chip_UART_Init(RS485_UART);
-	Chip_UART_SetBaud(RS485_UART, 921600);
+	Chip_UART_SetBaud(RS485_UART, 460800);
 
-	Chip_UART_SetupFIFOS(RS485_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
+#warning Baud rate 921600 not work
+
+ 	Chip_UART_SetupFIFOS(RS485_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
 
 	Chip_UART_TXEnable(RS485_UART);
 
@@ -179,7 +171,7 @@ uint32_t Init_Uart_Rs232(void) {
 
 	/* UART3 (RS232) */
 	Chip_UART_Init(RS232_UART);
-	Chip_UART_SetBaud(RS232_UART, 115200);
+	Chip_UART_SetBaud(RS232_UART, 460800);
 
 	Chip_UART_SetupFIFOS(RS232_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
 

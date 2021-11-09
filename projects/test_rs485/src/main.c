@@ -93,12 +93,12 @@ int main(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Leds();
-	Init_Uart_Rs485();
+	Init_Uart_Ftdi(921600);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	uint8_t data_array[ARRAY_SIZE] = {0};
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		SendStringRs485(data_array, ARRAY_SIZE);
+		Chip_UART_SendBlocking(USB_UART, &data_array, ARRAY_SIZE);
 		StopWatch_DelayMs(1);
 	}
 

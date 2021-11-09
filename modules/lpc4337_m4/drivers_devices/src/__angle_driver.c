@@ -117,7 +117,7 @@ void angle_i2cDriverInit(angle_address_t slave) {
 	_slaveAddress = slave;
 	Chip_SCU_I2C0PinConfig(I2C0_STANDARD_FAST_MODE);
 	Chip_I2C_Init(I2C0);
-	Chip_I2C_SetClockRate(I2C0, I2C_SPEED_100KHZ);
+	Chip_I2C_SetClockRate(I2C0, I2C_SPEED_400KHZ);
 	Chip_I2C_SetMasterEventHandler(I2C0, Chip_I2C_EventHandler);
 	NVIC_EnableIRQ(I2C0_IRQn);
 	StopWatch_Init();
@@ -229,7 +229,6 @@ void angle_setConfig(uint16_t setValue) {
 	writeReg[2] = setValue & 0x00FF;
 
 	SetupXferRecAndExecute(_slaveAddress, writeReg, 3, NULL, 0 );
-	StopWatch_DelayMs(10);
 }
 
 /* -------------------------------------------------------------------------- */
