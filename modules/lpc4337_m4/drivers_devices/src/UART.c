@@ -125,7 +125,7 @@ uint32_t Init_Uart_Ftdi_IntAct(int32_t baudios) {
 	Chip_UART_ConfigData( LPC_USART2,
 	UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
 
-	Chip_UART_SetBaud(USB_UART, baudios);
+	Chip_UART_SetBaudFDR(USB_UART, baudios);
 
 	Chip_UART_SetupFIFOS(USB_UART,
 			(UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
@@ -145,9 +145,7 @@ uint32_t Init_Uart_Rs485(void) {
 
 	/* UART0 (RS485/Profibus) */
 	Chip_UART_Init(RS485_UART);
-	Chip_UART_SetBaud(RS485_UART, 460800);
-
-#warning Baud rate 921600 not work
+	Chip_UART_SetBaudFDR(RS485_UART, 921600);
 
  	Chip_UART_SetupFIFOS(RS485_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
 
@@ -171,7 +169,7 @@ uint32_t Init_Uart_Rs232(void) {
 
 	/* UART3 (RS232) */
 	Chip_UART_Init(RS232_UART);
-	Chip_UART_SetBaud(RS232_UART, 460800);
+	Chip_UART_SetBaudFDR(RS232_UART, 921600);
 
 	Chip_UART_SetupFIFOS(RS232_UART, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV0);
 
