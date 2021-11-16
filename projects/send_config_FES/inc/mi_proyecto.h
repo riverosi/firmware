@@ -65,7 +65,7 @@
 #include "UART.h"
 #include "stopwatch.h"
 #include "FES_driver.h"
-
+#include "sapi_pwm.h"
 
 #ifdef __cplusplus
 extern "C" {

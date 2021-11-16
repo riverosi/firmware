@@ -31,19 +31,18 @@
  *
  */
 
-#ifndef MIPROYECTO_H
-#define MIPROYECTO_H
-/** \brief Bare Metal example header file
+/** \brief Blinking Bare Metal example source file
  **
- ** This is a mini example of the CIAA Firmware
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
 
 /** \addtogroup CIAA_Firmware CIAA Firmware
  ** @{ */
+
 /** \addtogroup Examples CIAA Firmware Examples
  ** @{ */
-/** \addtogroup Baremetal Bare Metal example header file
+/** \addtogroup Baremetal Bare Metal example source file
  ** @{ */
 
 /*
@@ -59,29 +58,71 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
-#include "gpio.h"
-#include "fpu_init.h"
-#include "UART.h"
-#include "stopwatch.h"
-#include "FES_driver.h"
+#include "mi_proyecto.h"       /* <= own header */
+#include "systemclock.h"
+#include <string.h>
+/*=====[Inclusions of function dependencies]=================================*/
 
+/*=====[Definition macros of private constants]==============================*/
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define ARRAY_SIZE 15
+/*=====[Definitions of extern global variables]==============================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*=====[Definitions of public global variables]==============================*/
 
-int main(void);
+/*=====[Definitions of private global variables]=============================*/
 
-/*==================[cplusplus]==============================================*/
-
-#ifdef __cplusplus
+/*=======================[SysTick_Handler]===================================*/
+static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
+/**
+ * Only for blinky
+ */
+void SysTick_Handler(void) {
+	if (cnt == 500) {
+		Led_Toggle(RGB_G_LED);
+		cnt = 0;
+	}
+	cnt++;
 }
-#endif
+/*=====[Main function, program entry point after power on or reset]==========*/
+int main(void) {
 
-/*==================[external functions declaration]=========================*/
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Leds();
+	Init_Uart_Rs485();
+	pwmInit(0, PWM_ENABLE); // Enable pwm
+	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
+	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
+	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
+	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	uint8_t data_array[ARRAY_SIZE] = { 0 };
+	// ----- Repeat for ever -------------------------
+	for (;;) {
 
+		if (ARRAY_SIZE
+				== Chip_UART_ReadBlocking(RS485_UART, &data_array,
+						ARRAY_SIZE)) {
+			if (data_array[0] == 0xFF) {
+				pwmWrite(PWM7, data_array[2]);
+				pwmWrite(PWM8, data_array[3]);
+				pwmWrite(PWM9, data_array[4]);
+			}
+		}
+	}
 
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
+
+	return 0;
+
+}
+
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
-#endif /* #ifndef MIPROYECTO_H */
 

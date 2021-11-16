@@ -2,7 +2,7 @@
  * FES_driver.h
  *
  *  Created on: 28 abr. 2021
- *      Author: riverosky ignacio
+ *      Author: riveros ignacio
  */
 
 #ifndef MODULES_LPC4337_M4_DRIVERS_DEVICES_INC_FES_DRIVER_H_
@@ -10,7 +10,6 @@
 
 /*=====[Inclusions of public function dependencies]==========================*/
 #include "UART.h"
-#include "__angle_driver.h"
 
 /*=====[C++ - begin]=========================================================*/
 
@@ -20,6 +19,7 @@ extern "C" {
 
 /*=====[Definition macros of public constants]===============================*/
 #define NUMBER_CHANNELS	6
+#define PAYLOAD_SIZE 15
 
 #define FES_SUCCESS	1
 #define FES_ERROR	0
@@ -60,6 +60,7 @@ Source: A Comparative Study on Control Strategies for FES Cycling Using a Detail
 
 /*=====[Definitions of public data types]====================================*/
 typedef struct {
+	uint8_t header;								/**!< Header for UART*/
 	uint8_t channelEnable;						/**!< mask of channels enables is FES*/
 	uint8_t duty[NUMBER_CHANNELS];				/**!< Duty Cycle for every channel*/
 	uint8_t channelAmplitude[NUMBER_CHANNELS];	/**!< Current Amplitude for channel*/
@@ -92,7 +93,7 @@ uint8_t initFES(void);
  * @return
  *
  */
-uint8_t setFES(dataFES_t* data);
+uint8_t sendDataFES(dataFES_t* data);
 
 /**
  * @brief Brief description of the function
