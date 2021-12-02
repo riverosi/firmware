@@ -58,57 +58,48 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
+#include "../../test_gpio/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include <string.h>
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-#define ARRAY_SIZE 15
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
 
+/*==================[Init_Hardware]==========================================*/
+void Init_Hardware(void) {
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(460800);
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
+}
 /*=======================[SysTick_Handler]===================================*/
-static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
-/**
- * Only for blinky
- */
+static uint32_t cnt = 0;
 void SysTick_Handler(void) {
-	if (cnt == 500) {
-		Led_Toggle(RGB_G_LED);
+	if (cnt == 200) {
+		GPIOToggle(CIAA_DO7);
 		cnt = 0;
 	}
 	cnt++;
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
+
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	fpuInit();
-	StopWatch_Init();
-	Init_Leds();
-	Init_Uart_Rs485();
-	pwmInit(0, PWM_ENABLE); // Enable pwm
-	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
-	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
-	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
+	Init_Hardware();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint8_t data_array[ARRAY_SIZE] = { 0 };
 	// ----- Repeat for ever -------------------------
-	for (;;) {
-
-			if (ARRAY_SIZE
-					== Chip_UART_ReadBlocking(RS485_UART, &data_array,
-							ARRAY_SIZE)) {
-					pwmWrite(PWM7, data_array[3]);
-					pwmWrite(PWM8, data_array[4]);
-					pwmWrite(PWM9, data_array[5]);
-			}
+	while (TRUE) {
 
 	}
 

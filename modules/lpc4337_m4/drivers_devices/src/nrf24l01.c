@@ -57,7 +57,7 @@ static nrf24l01_t* secondary_dev; /**< RX if there are two RF modules in the sam
 static uint16_t internal_states[NUMBER_OF_DEVICES]; /**< Internal states */
 static uint8_t g_status[NUMBER_OF_DEVICES]; /**< Global status*/
 
-const spiConfig_t nrf24l01_spi_default_cfg = { SSP_1, SPI_BITS8, SPI_CLK_MODE0, 1000000}; //max 8MHz
+const spiConfig_t nrf24l01_spi_default_cfg = { SSP_1, SPI_BITS8, SPI_CLK_MODE0, 4000000}; //max 8MHz
 
 /*==================[internal functions definition]==========================*/
 
