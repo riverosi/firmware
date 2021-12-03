@@ -7,7 +7,7 @@
 #include "arm_math.h"
 #include "signal.h"
 
-float32_t testInput_f32[128] = {
+const float32_t testInput_f32[128] = {
 		0.00000000f,
 		0.00000000f,
 		0.00000000f,

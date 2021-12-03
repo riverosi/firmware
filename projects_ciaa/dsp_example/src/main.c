@@ -70,15 +70,8 @@
 #define UART_BAUDRATE 115200
 
 /*=====[Definitions of extern global variables]==============================*/
-extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE];
+extern const float32_t testInput_f32[BLOCKSIZE];
 uint32_t blockSize = BLOCKSIZE;
-
-
-union {/** Union data for stream in UART*/
-		uint32_t cycles_enlapsed;
-		float32_t testOutput_f32[BLOCKSIZE];
-	} data_union;
 
 /*=====[Definitions of public global variables]==============================*/
 
@@ -105,10 +98,14 @@ int main(void) {
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	float rms, power, ptp, iemg;
 
+	union {/** Union data for stream in UART*/
+		uint32_t cycles_enlapsed;
+		uint8_t rxBuff[4];
+	} data_union;
 
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		/*
+
 		DWTStart();
 		for (int var = 0; var < 1000; ++var) {
 			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
@@ -136,13 +133,7 @@ int main(void) {
 		}
 		data_union.cycles_enlapsed = DWTStop();
 		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-		*/
-		DWTStart();
-		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
-		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
-		Chip_UART_SendBlocking(USB_UART, &data_union.testOutput_f32, sizeof(float)*BLOCKSIZE);
-		data_union.cycles_enlapsed = DWTStop();
+
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

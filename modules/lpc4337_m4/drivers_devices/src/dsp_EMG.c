@@ -5,16 +5,16 @@
  *      Author: river
  */
 #include "dsp_EMG.h"
+#define APP_FFT_LEN 64
 
 void dsp_emg_rms_f32(float32_t* pSrc, uint32_t blockSize, float32_t* pResult) {
 	arm_rms_f32(pSrc, blockSize, pResult);
 }
 
-
 void dsp_emg_power_f32(float32_t* pSrc, uint32_t blockSize, float32_t* pResult) {
 	float aux;
 	arm_power_f32(pSrc, blockSize, &aux);
-	aux = aux/(blockSize);
+	aux = aux / (blockSize);
 	*pResult = aux;
 }
 
@@ -31,10 +31,21 @@ void dsp_emg_iemg_f32(float32_t* pSrc, uint32_t blockSize, float32_t* pResult) {
 	float result = 0;
 	uint32_t i = 0;
 	if (blockSize > 0) {
-		while(i<blockSize){
+		while (i < blockSize) {
 			result += fabsf(pSrc[i]);
 			i++;
 		}
 		*pResult = result;
 	}
+}
+
+void dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult) {
+
+	arm_rfft_fast_instance_f32 rfft_fast_instance;
+	arm_status status;
+	status = arm_rfft_fast_init_f32(&rfft_fast_instance, APP_FFT_LEN);
+	arm_rfft_fast_f32(&rfft_fast_instance, pSrc , pSrc, 0);
+	arm_cmplx_mag_f32(pSrc , pResult, APP_FFT_LEN);
+	arm_scale_f32(pResult, 1.0/APP_FFT_LEN , pResult, APP_FFT_LEN);
+
 }
