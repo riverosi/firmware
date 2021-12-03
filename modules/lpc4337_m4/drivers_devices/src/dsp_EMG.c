@@ -42,10 +42,9 @@ void dsp_emg_iemg_f32(float32_t* pSrc, uint32_t blockSize, float32_t* pResult) {
 void dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult) {
 
 	arm_rfft_fast_instance_f32 rfft_fast_instance;
-	arm_status status;
-	status = arm_rfft_fast_init_f32(&rfft_fast_instance, APP_FFT_LEN);
+	arm_rfft_fast_init_f32(&rfft_fast_instance, blockSize);
 	arm_rfft_fast_f32(&rfft_fast_instance, pSrc , pSrc, 0);
 	arm_cmplx_mag_f32(pSrc , pResult, APP_FFT_LEN);
-	arm_scale_f32(pResult, 1.0/APP_FFT_LEN , pResult, APP_FFT_LEN);
+	arm_scale_f32(pResult, 1.0f/blockSize , pResult, APP_FFT_LEN);
 
 }
