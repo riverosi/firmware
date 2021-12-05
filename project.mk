@@ -40,8 +40,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
-#PROJECT = projects_ciaa/test_nrf24
-PROJECT = projects/dsp_example
+#PROJECT = projects_ciaa/send_config_FES
+PROJECT = projects/read_config_FES
 TARGET = lpc4337_m4
 BOARD = edu_ciaa_nxp
 #-------------------------------------------------------------------------------

@@ -19,7 +19,7 @@ extern "C" {
 
 /*=====[Definition macros of public constants]===============================*/
 #define NUMBER_CHANNELS	6
-#define PAYLOAD_SIZE 15
+#define PAYLOAD_SIZE 16 //be a power of 2
 
 #define FES_SUCCESS	1
 #define FES_ERROR	0
@@ -60,7 +60,7 @@ Source: A Comparative Study on Control Strategies for FES Cycling Using a Detail
 
 /*=====[Definitions of public data types]====================================*/
 typedef struct {
-	uint8_t header;								/**!< Header for UART*/
+	uint16_t header;							/**!< Header for UART*/
 	uint8_t channelEnable;						/**!< mask of channels enables is FES*/
 	uint8_t duty[NUMBER_CHANNELS];				/**!< Duty Cycle for every channel*/
 	uint8_t channelAmplitude[NUMBER_CHANNELS];	/**!< Current Amplitude for channel*/

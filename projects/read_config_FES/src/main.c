@@ -65,12 +65,40 @@
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-#define ARRAY_SIZE 15
+#define ARRAY_SIZE 16
+#define BUFFLEN 128
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-
+RINGBUFF_T rbRx;
+uint8_t rxBuff[BUFFLEN];
+static volatile Bool uart_flag = FALSE;
 /*=====[Definitions of private global variables]=============================*/
+
+void app_rs485_irq_config(void) {
+	/* UART0 (RS485/Profibus) */
+	Chip_UART_Init(LPC_USART0);
+	Chip_UART_SetBaudFDR(LPC_USART0, 921600);
+	Chip_UART_SetupFIFOS(LPC_USART0, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV3));
+
+	Chip_UART_ReadByte(LPC_USART0);
+	Chip_UART_TXEnable(LPC_USART0);
+
+	Chip_SCU_PinMux(9, 5, MD_PDN, FUNC7); /* P9_5: UART0_TXD */
+	Chip_SCU_PinMux(9, 6, MD_PLN | MD_EZI | MD_ZI, FUNC7); /* P9_6: UART0_RXD */
+	Chip_UART_SetRS485Flags(LPC_USART0,	UART_RS485CTRL_DCTRL_EN | UART_RS485CTRL_OINV_1);
+	Chip_SCU_PinMux(6, 2, MD_PDN, FUNC2); /* P6_2: UART0_DIR */
+	Chip_UART_IntEnable(LPC_USART0, (UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_SetPriority(USART0_IRQn, 5);
+	NVIC_EnableIRQ(USART0_IRQn);
+
+}
+/*=======================[SysTick_Handler]===================================*/
+void UART0_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB(LPC_USART0, &rbRx); //pone los datos que se mandan por UART en el ring buffer
+	Chip_UART_ReadRB(LPC_USART0, &rbRx, rxBuff, ARRAY_SIZE);
+	uart_flag = TRUE;
+}
 
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
@@ -79,7 +107,7 @@ static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
  */
 void SysTick_Handler(void) {
 	if (cnt == 500) {
-		Led_Toggle(RGB_G_LED);
+		Led_Toggle(RGB_B_LED);
 		cnt = 0;
 	}
 	cnt++;
@@ -92,24 +120,22 @@ int main(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Leds();
-	Init_Uart_Rs485();
+	app_rs485_irq_config();
+	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
+	RingBuffer_Flush(&rbRx);
 	pwmInit(0, PWM_ENABLE); // Enable pwm
 	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
 	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
 	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint8_t data_array[ARRAY_SIZE] = { 0 };
 	// ----- Repeat for ever -------------------------
 	for (;;) {
-
-			if (ARRAY_SIZE
-					== Chip_UART_ReadBlocking(RS485_UART, &data_array,
-							ARRAY_SIZE)) {
-					pwmWrite(PWM7, data_array[3]);
-					pwmWrite(PWM8, data_array[4]);
-					pwmWrite(PWM9, data_array[5]);
-			}
-
+		if (uart_flag) {
+			pwmWrite(PWM7, rxBuff[3]);
+			pwmWrite(PWM8, rxBuff[4]);
+			pwmWrite(PWM9, rxBuff[5]);
+			uart_flag = FALSE;
+		}
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

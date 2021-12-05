@@ -112,7 +112,6 @@ typedef enum {
 	CIAA_DI5,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
 	CIAA_DI6,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
 	CIAA_DI7,	/**< Mapeo para CIAA Board GPIO1[8] en P1_5 */
-
 } gpio_t;
 /**
  * @typedef gpiogp_t

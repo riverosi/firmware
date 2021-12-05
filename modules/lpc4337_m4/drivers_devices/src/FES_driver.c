@@ -39,9 +39,9 @@ uint8_t channelsEnables(){
 }
 
 uint8_t sendDataFES(dataFES_t* data) {
-	uint8_t arr2[PAYLOAD_SIZE] = { 0 };
-	data->header = 0xFF;
-	memcpy(&arr2, &data->header, PAYLOAD_SIZE );
+	uint8_t arr2[PAYLOAD_SIZE];
+	data->header = 0xFFFF;
+	memcpy(&arr2, data, PAYLOAD_SIZE );
 	SendStringRs485(arr2, PAYLOAD_SIZE);
 	return FES_SUCCESS;
 }
