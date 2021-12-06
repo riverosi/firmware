@@ -60,51 +60,58 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include <string.h>
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-#define ARRAY_SIZE 16
-#define BUFFLEN 128
+#define CCAN_RX_MSG_ID (0x200) //CCAN RX Message ID
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-RINGBUFF_T rbRx;
-uint8_t rxBuff[BUFFLEN];
-static volatile Bool uart_flag = FALSE;
+
 /*=====[Definitions of private global variables]=============================*/
 
-void app_rs485_irq_config(void) {
-	/* UART0 (RS485/Profibus) Only work with this configuration*/
-	Chip_UART_Init(LPC_USART0);
-	Chip_UART_SetBaudFDR(LPC_USART0, 921600);
-	Chip_UART_SetupFIFOS(LPC_USART0, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV3));
+void Init_ccan(void){
+	Chip_CCAN_Init(LPC_C_CAN0);
+	/* Set CCAN peripheral clock under 50Mhz for working stable */
+	Chip_Clock_SetBaseClock(CLK_BASE_APB3, CLKIN_IDIVC, TRUE, FALSE);
+	Chip_CCAN_Init(LPC_C_CAN0);
+	Chip_CCAN_SetBitRate(LPC_C_CAN0, 500000);//500Khz
 
-	Chip_UART_ReadByte(LPC_USART0);
-	Chip_UART_TXEnable(LPC_USART0);
+	Chip_SCU_PinMux(3, 2, MD_PDN, FUNC2); /* P3_2: CAN_TD */
+	Chip_SCU_PinMux(3, 1, MD_PLN | MD_EZI | MD_ZI, FUNC2); /* P3_1: CAN_RD */
 
-	Chip_SCU_PinMux(9, 5, MD_PDN, FUNC7); /* P9_5: UART0_TXD */
-	Chip_SCU_PinMux(9, 6, MD_PLN | MD_EZI | MD_ZI, FUNC7); /* P9_6: UART0_RXD */
-	Chip_UART_SetRS485Flags(LPC_USART0,	UART_RS485CTRL_DCTRL_EN | UART_RS485CTRL_OINV_1);
-	Chip_SCU_PinMux(6, 2, MD_PDN, FUNC2); /* P6_2: UART0_DIR */
-	Chip_UART_IntEnable(LPC_USART0, (UART_IER_RBRINT | UART_IER_RLSINT));
-	NVIC_SetPriority(USART0_IRQn, 5);
-	NVIC_EnableIRQ(USART0_IRQn);
+	Chip_CCAN_EnableInt(LPC_C_CAN0, (CCAN_CTRL_IE | CCAN_CTRL_SIE | CCAN_CTRL_EIE));
+	Chip_CCAN_AddReceiveID(LPC_C_CAN0, CCAN_MSG_IF1, CCAN_RX_MSG_ID);
+	NVIC_SetPriority(C_CAN0_IRQn, 5);
+	NVIC_EnableIRQ(C_CAN0_IRQn);
+}
+/*=======================[C_CAN0_IRQn_Handler]===============================*/
+void CAN0_IRQHandler(void)
+{
+	CCAN_MSG_OBJ_T msg_buf;
+	uint32_t can_int, can_stat, i;
+	while ( (can_int = Chip_CCAN_GetIntID(LPC_C_CAN0)) != 0 )
+	{
+		if ((1 <= CCAN_INT_MSG_NUM(can_int)) && (CCAN_INT_MSG_NUM(can_int) <= 0x20))
+		{
+			Chip_CCAN_GetMsgObject(LPC_C_CAN0, CCAN_MSG_IF1, can_int, &msg_buf);
+			switch (msg_buf.data[0]) {
+				case 'O':
+					Led_On(RGB_G_LED);
+					break;
+				case 'F':
+					Led_Off(RGB_G_LED);
+					break;
 
+				default:
+					break;
+			}
+		}
+	}
 }
 /*=======================[SysTick_Handler]===================================*/
-void UART0_IRQHandler(void) {
-	Chip_UART_RXIntHandlerRB(LPC_USART0, &rbRx); //pone los datos que se mandan por UART en el ring buffer
-	Chip_UART_ReadRB(LPC_USART0, &rbRx, rxBuff, ARRAY_SIZE);
-	uart_flag = TRUE;
-}
-
-/*=======================[SysTick_Handler]===================================*/
-static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
-/**
- * Only for blinky
- */
+static uint32_t cnt = 0;
 void SysTick_Handler(void) {
 	if (cnt == 500) {
 		Led_Toggle(RGB_B_LED);
@@ -114,28 +121,16 @@ void SysTick_Handler(void) {
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
-
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
 	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
 	Init_Leds();
-	app_rs485_irq_config();
-	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
-	RingBuffer_Flush(&rbRx);
-	pwmInit(0, PWM_ENABLE); // Enable pwm
-	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
-	pwmInit(PWM8, PWM_ENABLE_OUTPUT);/*LED2 PWM*/
-	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
+	Init_ccan();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	// ----- Repeat for ever -------------------------
-	for (;;) {
-		if (uart_flag) {
-			pwmWrite(PWM7, rxBuff[3]);
-			pwmWrite(PWM8, rxBuff[4]);
-			pwmWrite(PWM9, rxBuff[5]);
-			uart_flag = FALSE;
-		}
+	while (TRUE) {
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
