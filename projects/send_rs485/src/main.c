@@ -58,91 +58,55 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
-#include "signal.h"
+#include "../../send_rs485/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include <string.h>
+
 
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  // call SysTick every 1/1000Hz
-#define BLOCKSIZE 128
-#define UART_BAUDRATE 115200
-
+#define SYSTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define PAYLOAD_SIZE 8
 /*=====[Definitions of extern global variables]==============================*/
-extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE/2];
-uint32_t blockSize = BLOCKSIZE;
-
-
-uint8_t array_data[sizeof(float)*BLOCKSIZE/2];
-float32_t testOutput_f32[BLOCKSIZE/2];
 
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
 
-/*=====[Main function, program entry point after power on or reset]==========*/
 
 /*=======================[SysTick_Handler]===================================*/
-static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
+static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
+/**
+ * Only for blinky
+ */
 void SysTick_Handler(void) {
-	cnt++;
-	if ((cnt) % 500 == 0) {
-		Led_Toggle(RGB_B_LED);
+	if (cnt == 250) {
+		Led_Toggle(RGB_G_LED);
+		cnt = 0;
 	}
+	cnt++;
 }
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
 	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(UART_BAUDRATE);
 	Init_Leds();
-	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float rms, power, ptp, iemg;
-
-
+	StopWatch_Init();
+	Init_Uart_Rs485();
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);/*call systick every 1ms*/
+	uint8_t arr2[PAYLOAD_SIZE];
+	uint32_t header = 0xFFFFFFFF;
+	float data_example = 0.0f;
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		/*
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_power_f32(testInput_f32, blockSize, &power);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-		*/
-		DWTStart();
-		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
-		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
-		memcpy(&array_data, &testOutput_f32 , sizeof(float)*BLOCKSIZE/2);
-		Chip_UART_SendBlocking(USB_UART, &array_data, sizeof(float)*BLOCKSIZE/2);
-		DWTStop();
+		data_example = 1.0f;
+		memcpy(&arr2[0], &header, sizeof(uint32_t));
+		memcpy(&arr2[4], &data_example, sizeof(float));
+		SendStringRs485(arr2, PAYLOAD_SIZE);
+		StopWatch_DelayMs(500);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

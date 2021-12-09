@@ -31,18 +31,19 @@
  *
  */
 
-/** \brief Blinking Bare Metal example source file
+#ifndef MIPROYECTO_H
+#define MIPROYECTO_H
+/** \brief Bare Metal example header file
  **
- ** This is a mini example of the CIAA Firmware.
+ ** This is a mini example of the CIAA Firmware
  **
  **/
 
 /** \addtogroup CIAA_Firmware CIAA Firmware
  ** @{ */
-
 /** \addtogroup Examples CIAA Firmware Examples
  ** @{ */
-/** \addtogroup Baremetal Bare Metal example source file
+/** \addtogroup Baremetal Bare Metal example header file
  ** @{ */
 
 /*
@@ -58,61 +59,27 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
-#include "systemclock.h"
-/*=====[Inclusions of function dependencies]=================================*/
+#include "led.h"
+#include "gpio.h"
+#include "fpu_init.h"
+#include "UART.h"
+#include "stopwatch.h"
 
-/*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-/*=====[Definitions of extern global variables]==============================*/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*=====[Definitions of public global variables]==============================*/
+int main(void);
 
-/*=====[Definitions of private global variables]=============================*/
+/*==================[cplusplus]==============================================*/
 
-/*==================[Init_Hardware]==========================================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
-	}
+#ifdef __cplusplus
 }
-/*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
-void SysTick_Handler(void) {
-	if (cnt == 200) {
-		GPIOToggle(CIAA_DO7);
-		cnt = 0;
-	}
-	cnt++;
-}
-/*=====[Main function, program entry point after power on or reset]==========*/
+#endif
 
-int main(void) {
+/*==================[external functions declaration]=========================*/
 
-	/* perform the needed initialization here */
-	SystemClockInit();
-	Init_Hardware();
-	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	// ----- Repeat for ever -------------------------
-	while (TRUE) {
 
-	}
-
-	// YOU NEVER REACH HERE, because this program runs directly or on a
-	// microcontroller and is not called by any Operating System, as in the
-	// case of a PC program.
-
-	return 0;
-
-}
-
-/** @} doxygen end group definition */
-/** @} doxygen end group definition */
-/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
+#endif /* #ifndef MIPROYECTO_H */
 

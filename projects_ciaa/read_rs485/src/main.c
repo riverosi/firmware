@@ -59,90 +59,83 @@
 
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
-#include "signal.h"
 #include "systemclock.h"
-#include <string.h>
-
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  // call SysTick every 1/1000Hz
-#define BLOCKSIZE 128
-#define UART_BAUDRATE 115200
-
+#define SISTICK_CALL_FREC	1000  /* call SysTick every 1ms 1/1000Hz */
+#define ARRAY_SIZE 8
+#define BUFFLEN 128
 /*=====[Definitions of extern global variables]==============================*/
-extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE/2];
-uint32_t blockSize = BLOCKSIZE;
-
-
-uint8_t array_data[sizeof(float)*BLOCKSIZE/2];
-float32_t testOutput_f32[BLOCKSIZE/2];
 
 /*=====[Definitions of public global variables]==============================*/
+RINGBUFF_T rbRx;
+uint8_t rxBuff[BUFFLEN];
+static volatile Bool uart_flag = FALSE;
 
 /*=====[Definitions of private global variables]=============================*/
+void app_rs485_irq_config(void) {
+	/* UART0 (RS485/Profibus) Only work with this configuration */
+	Chip_UART_Init(LPC_USART0);
+	Chip_UART_SetBaudFDR(LPC_USART0, 921600);
+	Chip_UART_SetupFIFOS(LPC_USART0, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV3));
 
+	Chip_UART_ReadByte(LPC_USART0);
+	Chip_UART_TXEnable(LPC_USART0);
+
+	Chip_SCU_PinMux(9, 5, MD_PDN, FUNC7); /* P9_5: UART0_TXD */
+	Chip_SCU_PinMux(9, 6, MD_PLN | MD_EZI | MD_ZI, FUNC7); /* P9_6: UART0_RXD */
+	Chip_UART_SetRS485Flags(LPC_USART0,	UART_RS485CTRL_DCTRL_EN | UART_RS485CTRL_OINV_1);
+	Chip_SCU_PinMux(6, 2, MD_PDN, FUNC2); /* P6_2: UART0_DIR */
+	Chip_UART_IntEnable(LPC_USART0, (UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_SetPriority(USART0_IRQn, 5);
+	NVIC_EnableIRQ(USART0_IRQn);
+
+}
+/*==================[Init_Hardware]==========================================*/
+void Init_Hardware(void) {
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
+	app_rs485_irq_config();
+}
+/*=======================[UART0_IRQHandler]==================================*/
+void UART0_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB(LPC_USART0, &rbRx); //pone los datos que se mandan por UART en el ring buffer
+	Chip_UART_ReadRB(LPC_USART0, &rbRx, rxBuff, ARRAY_SIZE);
+	uart_flag = TRUE;
+}
+/*=======================[SysTick_Handler]===================================*/
+static uint32_t cnt = 0;
+void SysTick_Handler(void) {
+	if (cnt == 250) {
+		GPIOToggle(CIAA_DO7);
+		cnt = 0;
+	}
+	cnt++;
+}
 /*=====[Main function, program entry point after power on or reset]==========*/
 
-/*=======================[SysTick_Handler]===================================*/
-static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
-void SysTick_Handler(void) {
-	cnt++;
-	if ((cnt) % 500 == 0) {
-		Led_Toggle(RGB_B_LED);
-	}
-}
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(UART_BAUDRATE);
-	Init_Leds();
+	Init_Hardware();
+	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
+	RingBuffer_Flush(&rbRx);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float rms, power, ptp, iemg;
-
-
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		/*
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
+		if (uart_flag) {
+			/* Routine here */
+			Chip_UART_SendBlocking(USB_UART, rxBuff, ARRAY_SIZE);
+			uart_flag = FALSE;
 		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_power_f32(testInput_f32, blockSize, &power);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-		*/
-		DWTStart();
-		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
-		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
-		memcpy(&array_data, &testOutput_f32 , sizeof(float)*BLOCKSIZE/2);
-		Chip_UART_SendBlocking(USB_UART, &array_data, sizeof(float)*BLOCKSIZE/2);
-		DWTStop();
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

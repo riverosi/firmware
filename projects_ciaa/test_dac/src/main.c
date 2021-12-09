@@ -59,90 +59,52 @@
 
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
-#include "signal.h"
 #include "systemclock.h"
-#include <string.h>
-
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  // call SysTick every 1/1000Hz
-#define BLOCKSIZE 128
-#define UART_BAUDRATE 115200
-
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
 /*=====[Definitions of extern global variables]==============================*/
-extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE/2];
-uint32_t blockSize = BLOCKSIZE;
-
-
-uint8_t array_data[sizeof(float)*BLOCKSIZE/2];
-float32_t testOutput_f32[BLOCKSIZE/2];
 
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
 
+/*==================[Init_Hardware]==========================================*/
+void Init_Hardware(void) {
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
+	dacInit(ENABLE);
+}
+/*=======================[SysTick_Handler]===================================*/
+static uint32_t cnt = 0;
+void SysTick_Handler(void) {
+	if (cnt % 250 == 0) {
+		GPIOToggle(CIAA_DO7);
+	}
+
+	if (cnt % 1023 == 0) {
+		dacWrite(cnt);
+	}
+
+	cnt++;
+}
 /*=====[Main function, program entry point after power on or reset]==========*/
 
-/*=======================[SysTick_Handler]===================================*/
-static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
-void SysTick_Handler(void) {
-	cnt++;
-	if ((cnt) % 500 == 0) {
-		Led_Toggle(RGB_B_LED);
-	}
-}
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(UART_BAUDRATE);
-	Init_Leds();
+	Init_Hardware();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float rms, power, ptp, iemg;
-
-
 	// ----- Repeat for ever -------------------------
-	while (TRUE) {
-		/*
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_power_f32(testInput_f32, blockSize, &power);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-		*/
-		DWTStart();
-		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
-		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
-		memcpy(&array_data, &testOutput_f32 , sizeof(float)*BLOCKSIZE/2);
-		Chip_UART_SendBlocking(USB_UART, &array_data, sizeof(float)*BLOCKSIZE/2);
-		DWTStop();
+	for(;;) {
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
