@@ -80,7 +80,7 @@ void Init_Hardware(void) {
 		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
 		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
 	}
-	dacInit(ENABLE);
+	dacInit(DAC_ENABLE);
 }
 /*=======================[SysTick_Handler]===================================*/
 static uint32_t cnt = 0;

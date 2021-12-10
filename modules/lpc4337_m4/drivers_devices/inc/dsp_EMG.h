@@ -53,6 +53,16 @@ void dsp_emg_iemg_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult)
  * @param[in]  blockSize  is the number of samples to process
  * @param[out] pResult    is output value.
  */
-void dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+
+/**
+ * @brief  MNF of the elements of a floating-point vector.
+ * @param[in]  pSrc       is input pointer
+ * @param[in]  blockSize  is the number of samples to process
+ * @param[out] pResult    is output value.
+ */
+void dsp_emg_mnf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+
+
 
 #endif /* MODULES_LPC4337_M4_DRIVERS_DEVICES_INC_DSP_EMG_H_ */

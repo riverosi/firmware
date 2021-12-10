@@ -70,14 +70,24 @@
 
 /*=====[Definitions of private global variables]=============================*/
 void Init_ccan(void) {
-	Chip_CCAN_Init(LPC_C_CAN0);
-	/* Set CCAN peripheral clock under 50Mhz for working stable */
+
+	Chip_SCU_PinMuxSet(0x3, 1, (SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_FUNC2)); /* CAN RD */
+	Chip_SCU_PinMuxSet(0x3, 2, (SCU_MODE_INACT | SCU_MODE_FUNC2)); /* CAN TD */
+	//Chip_SCU_PinMux(3, 2, MD_PDN, FUNC2); /* P3_2: CAN_TD */
+	//Chip_SCU_PinMux(3, 1, MD_PLN | MD_EZI | MD_ZI, FUNC2); /* P3_1: CAN_RD */
+
+	uint32_t freq;
+	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3);
+
+	/* Set CCAN peripheral clock under 100Mhz for working stable */
+	Chip_Clock_EnableBaseClock(CLK_BASE_APB3);
 	Chip_Clock_SetBaseClock(CLK_BASE_APB3, CLKIN_IDIVC, TRUE, FALSE);
+	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3); // Frequency verification
+
 	Chip_CCAN_Init(LPC_C_CAN0);
 	Chip_CCAN_SetBitRate(LPC_C_CAN0, 500000); //500Khz
-
-	Chip_SCU_PinMux(3, 2, MD_PDN, FUNC2); /* P3_2: CAN_TD */
-	Chip_SCU_PinMux(3, 1, MD_PLN | MD_EZI | MD_ZI, FUNC2); /* P3_1: CAN_RD */
+	Chip_CCAN_EnableTestMode(LPC_C_CAN0);
+	Chip_CCAN_ConfigTestMode(LPC_C_CAN0, CCAN_TEST_BASIC_MODE);
 }
 /*==================[Init_Hardware]==========================================*/
 void Init_Hardware(void) {
@@ -90,6 +100,7 @@ void Init_Hardware(void) {
 	}
 	Init_ccan();
 }
+
 /*=======================[SysTick_Handler]===================================*/
 static uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -99,6 +110,7 @@ void SysTick_Handler(void) {
 	}
 	cnt++;
 }
+
 /*=====[Main function, program entry point after power on or reset]==========*/
 
 int main(void) {
@@ -115,10 +127,6 @@ int main(void) {
 		send_obj.id = 0x200; //CCAN_TX_MSG_ID 0x200
 		send_obj.dlc = 1;
 		send_obj.data[0] = 'O';
-		Chip_CCAN_Send(LPC_C_CAN0, CCAN_MSG_IF1, FALSE, &send_obj);
-		Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_TXOK);
-		StopWatch_DelayMs(500);
-		send_obj.data[0] = 'F';
 		Chip_CCAN_Send(LPC_C_CAN0, CCAN_MSG_IF1, FALSE, &send_obj);
 		Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_TXOK);
 		StopWatch_DelayMs(500);
