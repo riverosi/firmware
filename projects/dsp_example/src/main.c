@@ -72,12 +72,11 @@
 
 /*=====[Definitions of extern global variables]==============================*/
 extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE/2];
+float32_t testOutput_f32[BLOCKSIZE / 2];
 uint32_t blockSize = BLOCKSIZE;
 
-
-uint8_t array_data[sizeof(float)*BLOCKSIZE/2];
-float32_t testOutput_f32[BLOCKSIZE/2];
+uint8_t array_data[sizeof(float) * BLOCKSIZE / 2];
+float32_t testOutput_f32[BLOCKSIZE / 2];
 
 /*=====[Definitions of public global variables]==============================*/
 
@@ -102,47 +101,50 @@ int main(void) {
 	Init_Uart_Ftdi(UART_BAUDRATE);
 	Init_Leds();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float rms, power, ptp, iemg;
-
+	float32_t rms, power, ptp, iemg, mdf;
 
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 		/*
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+		 DWTStart();
+		 for (int var = 0; var < 1000; ++var) {
+		 dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
+		 }
+		 data_union.cycles_enlapsed = DWTStop();
+		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
+		 DWTStart();
+		 for (int var = 0; var < 1000; ++var) {
+		 dsp_emg_power_f32(testInput_f32, blockSize, &power);
+		 }
+		 data_union.cycles_enlapsed = DWTStop();
+		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
+		 DWTStart();
+		 for (int var = 0; var < 1000; ++var) {
+		 dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
+		 }
+		 data_union.cycles_enlapsed = DWTStop();
+		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+
+		 DWTStart();
+		 for (int var = 0; var < 1000; ++var) {
+		 dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
+		 }
+		 data_union.cycles_enlapsed = DWTStop();
+		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
+		 */
 
 		DWTStart();
 		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_power_f32(testInput_f32, blockSize, &power);
+			mdf = dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
 		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-
-		DWTStart();
-		for (int var = 0; var < 1000; ++var) {
-			dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
-		}
-		data_union.cycles_enlapsed = DWTStop();
-		Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
-		*/
-		DWTStart();
+		uint32_t tickstop = DWTStop();
 		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
 		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
-		memcpy(&array_data, &testOutput_f32 , sizeof(float)*BLOCKSIZE/2);
-		Chip_UART_SendBlocking(USB_UART, &array_data, sizeof(float)*BLOCKSIZE/2);
-		DWTStop();
+		//dsp_emg_mdf_f32(testInput_f32, blockSize);
+		//memcpy(&array_data, &testOutput_f32, sizeof(float) * BLOCKSIZE / 2);
+		//Chip_UART_SendBlocking(USB_UART, &array_data,sizeof(float) * BLOCKSIZE / 2);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
