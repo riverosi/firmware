@@ -8,6 +8,8 @@
 #include <stdlib.h>
 
 #define APP_FFT_LEN 64
+#define SAMPLE_RATE 2000
+
 //Vector de frecuencia para una frecuencia de muestreo de 2khz y un buffer de 128 muestras.
 float freq_vector[65] = { 0.00000000f, 15.62500000f, 31.25000000f, 46.87500000f,
 		62.50000000f, 78.12500000f, 93.75000000f, 109.37500000f, 125.00000000f,
@@ -58,42 +60,73 @@ void dsp_emg_iemg_f32(float32_t* pSrc, uint32_t blockSize, float32_t* pResult) {
 	}
 }
 
-int compare(const void * a, const void * b) {
-	float32_t fa = *(const float32_t*) a;
-	float32_t fb = *(const float32_t*) b;
-	return (fa > fb) - (fa < fb);
+typedef struct str {
+	float32_t value;
+	float32_t freq;
+} str;
+
+int compare(const void *a, const void *b) {
+	struct str *a1 = (struct str *) a;
+	struct str *a2 = (struct str *) b;
+	if ((*a1).value > (*a2).value)
+		return -1;
+	else if ((*a1).value < (*a2).value)
+		return 1;
+	else
+		return 0;
 }
 
-float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize,	float32_t * pResult) {
-	float32_t median, aux;
+float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize) {
+
+	float32_t median;
+	str power_data[APP_FFT_LEN];
+
 	arm_rfft_fast_instance_f32 rfft_fast_instance;
 	arm_rfft_fast_init_f32(&rfft_fast_instance, blockSize);
 	arm_rfft_fast_f32(&rfft_fast_instance, pSrc, pSrc, 0);
-	arm_cmplx_mag_f32(pSrc, pResult, APP_FFT_LEN);
-	arm_scale_f32(pResult, 1.0f / blockSize, pResult, APP_FFT_LEN);
-	arm_scale_f32(&pResult[1], 2.0f, pResult, APP_FFT_LEN - 1);//fft IS OK.
-	arm_power_f32(pResult, APP_FFT_LEN, &aux);//Power spectrum IS OK
+	arm_cmplx_mag_f32(pSrc, pSrc, APP_FFT_LEN);//fft IS OK.
+	arm_mult_f32(pSrc, pSrc, pSrc, APP_FFT_LEN);
+	arm_scale_f32(pSrc, 1.0f / (float32_t) (blockSize * SAMPLE_RATE),pSrc, APP_FFT_LEN);
+	arm_scale_f32(&pSrc[1], 2.0f, &pSrc[1], APP_FFT_LEN - 1); //Power spectrum is ok
+
+	for (int var = 0; var < APP_FFT_LEN; var++) {
+		power_data[var].value = *(pSrc + var);
+		power_data[var].freq = *(freq_vector + var);
+	}
 
 	//sort values
-	qsort(pResult, APP_FFT_LEN, sizeof(float32_t), compare);
+	qsort(power_data, APP_FFT_LEN, sizeof(str), compare);
 	//The median of a set of data sorted is the middle most number or center value in the set.
-	median = (pResult[31] + pResult[32]) / 2.0f;
+	median = power_data[31].freq;
 	return median;
 }
 
 float32_t dsp_emg_mnf_f32(float32_t * pSrc, uint32_t blockSize) {
-	float32_t aux,aux1,aux2;
-	arm_rfft_fast_instance_f32 rfft_fast_instance;
-	arm_rfft_fast_init_f32(&rfft_fast_instance, blockSize);
-	arm_rfft_fast_f32(&rfft_fast_instance, pSrc, pSrc, 0);
-	arm_cmplx_mag_f32(pSrc, pSrc, APP_FFT_LEN);
-	arm_scale_f32(pSrc, 1.0f / blockSize, pSrc, APP_FFT_LEN);
-	arm_scale_f32(&pSrc[1], 2.0f, pSrc, APP_FFT_LEN - 1);//fft IS OK.
-	arm_power_f32(pSrc, APP_FFT_LEN, &aux);//Power spectrum IS OK
+	float32_t aux1, aux2;
+	float32_t data_local[blockSize];
+	arm_copy_f32(pSrc, data_local, blockSize);
+	/*
+	 arm_rfft_fast_instance_f32 rfft_fast_instance;
+	 arm_rfft_fast_init_f32(&rfft_fast_instance, blockSize);
+	 arm_rfft_fast_f32(&rfft_fast_instance, data_local, data_local, 0);
+	 arm_cmplx_mag_f32(data_local, data_local, APP_FFT_LEN); //fft IS OK.
+	 arm_mult_f32(data_local, data_local, data_local, APP_FFT_LEN);
+	 arm_scale_f32(data_local, 1.0f / (float32_t) (blockSize * SAMPLE_RATE),
+	 data_local, APP_FFT_LEN);
+	 arm_scale_f32(&data_local[1], 2.0f, &data_local[1], APP_FFT_LEN - 1); //Power spectrum is ok
+	 */
+	arm_cfft_f32(&arm_cfft_sR_f32_len64, data_local, 0, 1);
+	arm_cmplx_mag_f32(data_local, data_local, APP_FFT_LEN);
+	arm_mult_f32(data_local, data_local, data_local, APP_FFT_LEN);
+	arm_scale_f32(data_local, 1.0f / (float32_t) (blockSize * SAMPLE_RATE),	data_local, APP_FFT_LEN);
+	arm_scale_f32(&data_local[1], 2.0f, &data_local[1], APP_FFT_LEN - 1); //Power spectrum is ok
+	/**@link https://la.mathworks.com/help/signal/ug/power-spectral-density-estimates-using-fft.html */
+
 	//calculate using the dot product
-	arm_dot_prod_f32(pSrc, freq_vector, APP_FFT_LEN, &aux1);
-	arm_power_f32(pSrc, blockSize, &aux2);
-	aux2 = aux2 / blockSize;
+	//53 is a magic number fft is divergent after this value.
+	arm_dot_prod_f32(data_local, freq_vector, 53, &aux1);
+	arm_mean_f32(data_local, 53, &aux2);
+	aux2 = aux2 * (53);
 	aux1 = aux1 / aux2;
 	return aux1;
 }

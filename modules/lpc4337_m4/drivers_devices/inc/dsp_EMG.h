@@ -53,7 +53,7 @@ void dsp_emg_iemg_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult)
  * @param[in]  blockSize  is the number of samples to process
  * @param[out] pResult    is output value.
  */
-float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize);
 
 /**
  * @brief  MNF of the elements of a floating-point vector.

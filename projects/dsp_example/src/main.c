@@ -72,7 +72,6 @@
 
 /*=====[Definitions of extern global variables]==============================*/
 extern float32_t testInput_f32[BLOCKSIZE];
-float32_t testOutput_f32[BLOCKSIZE / 2];
 uint32_t blockSize = BLOCKSIZE;
 
 uint8_t array_data[sizeof(float) * BLOCKSIZE / 2];
@@ -101,7 +100,7 @@ int main(void) {
 	Init_Uart_Ftdi(UART_BAUDRATE);
 	Init_Leds();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	float32_t rms, power, ptp, iemg, mdf;
+	float32_t rms, power, ptp, iemg, mdf, mnf;
 
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
@@ -137,7 +136,8 @@ int main(void) {
 
 		DWTStart();
 		for (int var = 0; var < 1000; ++var) {
-			mdf = dsp_emg_mdf_f32(testInput_f32, blockSize, testOutput_f32);
+			//mdf = dsp_emg_mdf_f32(testInput_f32, blockSize);
+			mnf = dsp_emg_mnf_f32(testInput_f32, blockSize);
 		}
 		uint32_t tickstop = DWTStop();
 		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
