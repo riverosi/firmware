@@ -81,7 +81,7 @@ float32_t testOutput_f32[BLOCKSIZE / 2];
 
 /*=====[Definitions of private global variables]=============================*/
 
-/*=====[Main function, program entry point after power on or reset]==========*/
+
 
 /*=======================[SysTick_Handler]===================================*/
 static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
@@ -91,6 +91,7 @@ void SysTick_Handler(void) {
 		Led_Toggle(RGB_B_LED);
 	}
 }
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */
@@ -107,28 +108,28 @@ int main(void) {
 		/*
 		 DWTStart();
 		 for (int var = 0; var < 1000; ++var) {
-		 dsp_emg_rms_f32(testInput_f32, blockSize, &rms);
+		 rms = dsp_emg_rms_f32(testInput_f32, blockSize);
 		 }
 		 data_union.cycles_enlapsed = DWTStop();
 		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
 
 		 DWTStart();
 		 for (int var = 0; var < 1000; ++var) {
-		 dsp_emg_power_f32(testInput_f32, blockSize, &power);
+		 power = dsp_emg_power_f32(testInput_f32, blockSize);
 		 }
 		 data_union.cycles_enlapsed = DWTStop();
 		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
 
 		 DWTStart();
 		 for (int var = 0; var < 1000; ++var) {
-		 dsp_emg_ptp_f32(testInput_f32, blockSize, &ptp);
+		 ptp = dsp_emg_ptp_f32(testInput_f32, blockSize);
 		 }
 		 data_union.cycles_enlapsed = DWTStop();
 		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
 
 		 DWTStart();
 		 for (int var = 0; var < 1000; ++var) {
-		 dsp_emg_iemg_f32(testInput_f32, blockSize, &iemg);
+		 iemg = dsp_emg_iemg_f32(testInput_f32, blockSize);
 		 }
 		 data_union.cycles_enlapsed = DWTStop();
 		 Chip_UART_SendBlocking(USB_UART, &data_union.rxBuff, 4);
@@ -136,13 +137,10 @@ int main(void) {
 
 		DWTStart();
 		for (int var = 0; var < 1000; ++var) {
-			//mdf = dsp_emg_mdf_f32(testInput_f32, blockSize);
-			mnf = dsp_emg_mnf_f32(testInput_f32, blockSize);
+			mdf = dsp_emg_mdf_f32(testInput_f32, blockSize);
+			//mnf = dsp_emg_mnf_f32(testInput_f32, blockSize);
 		}
 		uint32_t tickstop = DWTStop();
-		//arm_cfft_f32(&arm_cfft_sR_f32_len256, testInput_f32, 0, 1);
-		//arm_cmplx_mag_f32(testInput_f32, testOutput_f32, 64);
-		//dsp_emg_mdf_f32(testInput_f32, blockSize);
 		//memcpy(&array_data, &testOutput_f32, sizeof(float) * BLOCKSIZE / 2);
 		//Chip_UART_SendBlocking(USB_UART, &array_data,sizeof(float) * BLOCKSIZE / 2);
 	}

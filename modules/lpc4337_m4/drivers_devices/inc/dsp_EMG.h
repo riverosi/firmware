@@ -18,40 +18,40 @@
  * @brief  Root Mean Square of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult   is output value.
  */
-void dsp_emg_rms_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_rms_f32(float32_t * pSrc, uint32_t blockSize);
 
 
 /**
  * @brief  Sum of the squares of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult    is output value.
  */
-void dsp_emg_power_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_power_f32(float32_t * pSrc, uint32_t blockSize);
 
 /**
  * @brief  Pick to pick amplitude of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult    is output value.
  */
-void dsp_emg_ptp_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_ptp_f32(float32_t * pSrc, uint32_t blockSize);
 
 /**
  * @brief  Integral EMG of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult    is output value.
  */
-void dsp_emg_iemg_f32(float32_t * pSrc, uint32_t blockSize, float32_t * pResult);
+float32_t dsp_emg_iemg_f32(float32_t * pSrc, uint32_t blockSize);
 
 /**
  * @brief  MDF of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult   is output value.
  */
 float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize);
 
@@ -59,7 +59,7 @@ float32_t dsp_emg_mdf_f32(float32_t * pSrc, uint32_t blockSize);
  * @brief  MNF of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
  * @param[in]  blockSize  is the number of samples to process
- * @param[out] pResult    is output value.
+ * @return[out] pResult   is output value.
  */
 float32_t dsp_emg_mnf_f32(float32_t * pSrc, uint32_t blockSize);
 

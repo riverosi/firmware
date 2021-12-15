@@ -64,20 +64,21 @@
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define CCAN_TX_MSG_ID (0x200)
+#define CCAN_RX_MSG_ID (0x100)
+#define CCAN_TX_MSG_REMOTE_ID (0x300)
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-
+uint8_t msg_received_counter = 0;
 /*=====[Definitions of private global variables]=============================*/
 void Init_ccan(void) {
 
 	Chip_SCU_PinMuxSet(0x3, 1, (SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_FUNC2)); /* CAN RD */
 	Chip_SCU_PinMuxSet(0x3, 2, (SCU_MODE_INACT | SCU_MODE_FUNC2)); /* CAN TD */
-	//Chip_SCU_PinMux(3, 2, MD_PDN, FUNC2); /* P3_2: CAN_TD */
-	//Chip_SCU_PinMux(3, 1, MD_PLN | MD_EZI | MD_ZI, FUNC2); /* P3_1: CAN_RD */
 
 	uint32_t freq;
-	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3);
+	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3);//68Mhz
 
 	/* Set CCAN peripheral clock under 100Mhz for working stable */
 	Chip_Clock_EnableBaseClock(CLK_BASE_APB3);
@@ -85,9 +86,9 @@ void Init_ccan(void) {
 	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3); // Frequency verification
 
 	Chip_CCAN_Init(LPC_C_CAN0);
-	Chip_CCAN_SetBitRate(LPC_C_CAN0, 500000); //500Khz
-	Chip_CCAN_EnableTestMode(LPC_C_CAN0);
-	Chip_CCAN_ConfigTestMode(LPC_C_CAN0, CCAN_TEST_BASIC_MODE);
+	Chip_CCAN_SetBitRate(LPC_C_CAN0, 125000); //125000Khz
+	Chip_CCAN_EnableInt(LPC_C_CAN0, (CCAN_CTRL_IE | CCAN_CTRL_SIE | CCAN_CTRL_EIE));
+	Chip_CCAN_DisableAutoRetransmit(LPC_C_CAN0);
 }
 /*==================[Init_Hardware]==========================================*/
 void Init_Hardware(void) {
@@ -100,7 +101,51 @@ void Init_Hardware(void) {
 	}
 	Init_ccan();
 }
+void CAN0_IRQHandler(void)
+{
+	CCAN_MSG_OBJ_T msg_buf;
+	uint32_t can_int, can_stat, i;
+	while ( (can_int = Chip_CCAN_GetIntID(LPC_C_CAN0)) != 0 ) {
+		if (can_int & CCAN_INT_STATUS) {
+			can_stat = Chip_CCAN_GetStatus(LPC_C_CAN0);
+			// TODO with error or TXOK, RXOK
+			if (can_stat & CCAN_STAT_EPASS) {
+				return;
+			}
+			if (can_stat & CCAN_STAT_EWARN) {
+				return;
+			}
+			if (can_stat & CCAN_STAT_BOFF) {
+				return;
+			}
+			Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_TXOK);
+			Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_RXOK);
+		}
+		else if ((1 <= CCAN_INT_MSG_NUM(can_int)) && (CCAN_INT_MSG_NUM(can_int) <= 0x20)) {
+			// Process msg num canint
+			Chip_CCAN_GetMsgObject(LPC_C_CAN0, CCAN_MSG_IF1, can_int, &msg_buf);
+			switch (msg_buf.id) {
+			case CCAN_RX_MSG_ID:
+				msg_buf.id += 1;
+				Chip_CCAN_Send(LPC_C_CAN0, CCAN_MSG_IF1, false, &msg_buf);
+				break;
 
+			case CCAN_TX_MSG_ID:
+				break;
+
+			case CCAN_TX_MSG_REMOTE_ID:
+				msg_received_counter++;
+				if (msg_received_counter == 2) {
+					Chip_CCAN_DeleteReceiveID(LPC_C_CAN0, CCAN_MSG_IF1, CCAN_TX_MSG_REMOTE_ID);
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+}
 /*=======================[SysTick_Handler]===================================*/
 static uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -114,22 +159,32 @@ void SysTick_Handler(void) {
 /*=====[Main function, program entry point after power on or reset]==========*/
 
 int main(void) {
-
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	CCAN_MSG_OBJ_T send_obj;
 
-	CCAN_MSG_OBJ_T send_obj; // CCAN object
+	send_obj.id = CCAN_TX_MSG_ID;
+	send_obj.dlc = 8;
+	send_obj.data[0] = 'C';
+	send_obj.data[1] = 'I';
+	send_obj.data[2] = 'A';
+	send_obj.data[3] = 'A';
+	send_obj.data[4] = '-';
+	send_obj.data[5] = 'N';
+	send_obj.data[6] = 'X';
+	send_obj.data[7] = 'P';
 
+	Chip_CCAN_Send(LPC_C_CAN0, CCAN_MSG_IF1, false, &send_obj);
+	Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_TXOK);
+
+	Chip_CCAN_AddReceiveID(LPC_C_CAN0, CCAN_MSG_IF1, CCAN_RX_MSG_ID);
+
+	NVIC_EnableIRQ(C_CAN0_IRQn);
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		send_obj.id = 0x200; //CCAN_TX_MSG_ID 0x200
-		send_obj.dlc = 1;
-		send_obj.data[0] = 'O';
-		Chip_CCAN_Send(LPC_C_CAN0, CCAN_MSG_IF1, FALSE, &send_obj);
-		Chip_CCAN_ClearStatus(LPC_C_CAN0, CCAN_STAT_TXOK);
-		StopWatch_DelayMs(500);
+
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
