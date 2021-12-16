@@ -74,9 +74,6 @@
 extern float32_t testInput_f32[BLOCKSIZE];
 uint32_t blockSize = BLOCKSIZE;
 
-uint8_t array_data[sizeof(float) * BLOCKSIZE / 2];
-float32_t testOutput_f32[BLOCKSIZE / 2];
-
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
