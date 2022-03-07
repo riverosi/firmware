@@ -79,7 +79,7 @@
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
+	Init_Uart_Ftdi(115200);
 	uint8_t var;
 	for (var = 0; var < 8; var++) {
 		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);

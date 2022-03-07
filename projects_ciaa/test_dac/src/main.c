@@ -82,6 +82,7 @@ void Init_Hardware(void) {
 	}
 	dacInit(DAC_ENABLE);
 }
+
 /*=======================[SysTick_Handler]===================================*/
 static uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -95,8 +96,8 @@ void SysTick_Handler(void) {
 
 	cnt++;
 }
-/*=====[Main function, program entry point after power on or reset]==========*/
 
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */

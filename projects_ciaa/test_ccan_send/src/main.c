@@ -58,7 +58,7 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "../../test_gpio/inc/mi_proyecto.h"       /* <= own header */
+#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 /*=====[Inclusions of function dependencies]=================================*/
 
@@ -72,6 +72,8 @@
 /*=====[Definitions of public global variables]==============================*/
 uint8_t msg_received_counter = 0;
 /*=====[Definitions of private global variables]=============================*/
+
+/*==================[Init_CCAN0]==========================================*/
 void Init_ccan(void) {
 
 	Chip_SCU_PinMuxSet(0x3, 1, (SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_FUNC2)); /* CAN RD */
@@ -86,9 +88,9 @@ void Init_ccan(void) {
 	freq = Chip_Clock_GetBaseClocktHz(CLK_BASE_APB3); // Frequency verification
 
 	Chip_CCAN_Init(LPC_C_CAN0);
-	Chip_CCAN_SetBitRate(LPC_C_CAN0, 125000); //125000Khz
+	Chip_CCAN_SetBitRate(LPC_C_CAN0, 125000); //125000Khz is the speed of the port
 	Chip_CCAN_EnableInt(LPC_C_CAN0, (CCAN_CTRL_IE | CCAN_CTRL_SIE | CCAN_CTRL_EIE));
-	Chip_CCAN_DisableAutoRetransmit(LPC_C_CAN0);
+	Chip_CCAN_DisableAutoRetransmit(LPC_C_CAN0); //Disable autoretransmit otherwise it doesn't work
 }
 /*==================[Init_Hardware]==========================================*/
 void Init_Hardware(void) {
@@ -104,7 +106,7 @@ void Init_Hardware(void) {
 void CAN0_IRQHandler(void)
 {
 	CCAN_MSG_OBJ_T msg_buf;
-	uint32_t can_int, can_stat, i;
+	uint32_t can_int, can_stat;
 	while ( (can_int = Chip_CCAN_GetIntID(LPC_C_CAN0)) != 0 ) {
 		if (can_int & CCAN_INT_STATUS) {
 			can_stat = Chip_CCAN_GetStatus(LPC_C_CAN0);

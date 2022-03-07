@@ -53,7 +53,7 @@
 /** @section wiring Wiring
  * ##Transmitter - Reciber NRF24L01 ##
  *
- * | NRF24L01 pins (PTX) | CIAA pins |
+ * | NRF24L01 pins (PTX) | CIAA pins 	 |
  * |:-------------------:|:-------------:|
  * |         VCC         |    +3.3V      |
  * |         GND         |    GND        |
@@ -91,7 +91,12 @@ typedef struct {
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-
+/** RX_data[0] Store Pedal Left data
+ * RX_data[1] Store Pedal Rigth data
+ */
+nrf24l01p_pedal_data RX_data[2] = { 0 };
+/** Flag for print data in serial port */
+static volatile bool flag_serial_data_print = FALSE;
 /*=====[Definitions of private global variables]=============================*/
 
 /*==================[Init_Hardware]==========================================*/
@@ -105,6 +110,23 @@ void Init_Hardware(void) {
 		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
 	}
 }
+void updateNrfData(void) {
+	float float_data = 0.0f;
+	memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
+	if (rcv_fr_PTX[0] == 0x01) { /* Pedal L */
+		RX_data[0].data_ready = true;
+		RX_data[0].force_node = float_data;
+	}
+	if (rcv_fr_PTX[0] == 0x02) { /* Pedal R */
+		RX_data[1].data_ready = true;
+		RX_data[1].force_node = float_data;
+	}
+}
+
+void clear_array(void) {
+	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
+}
+
 void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	/* Protocol Serial:
 	 * length: 1 + 4*N bytes
@@ -115,15 +137,12 @@ void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
 			sizeof(float));
 }
-void clear_array(void) {
-	memset(rcv_fr_PTX , 0x00 , 32); //Set array of data input whit zeros
-}
+
 /*=====[Definitions of public global variables]=============================*/
+
+/*==================[SystickHandler]=========================================*/
 /** Variable used for SysTick Counter */
 static volatile uint32_t cnt = 0;
-/** Flag for print data in serial port*/
-static volatile bool flag_serial_data_print = FALSE;
-/*==================[SystickHandler]=========================================*/
 void SysTick_Handler(void) {
 	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
 		flag_serial_data_print = TRUE;
@@ -157,10 +176,6 @@ int main(void) {
 	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
 
 	float float_data = 0.0f;
-	/* RX_data[0] Store Pedal Left data
-	 * RX_data[1] Store Pedal Rigth data
-	 */
-	nrf24l01p_pedal_data RX_data[2] = { 0 };
 
 	while (TRUE) {
 
@@ -190,8 +205,6 @@ int main(void) {
 			clear_array();
 			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
-
-
 
 	};
 	// YOU NEVER REACH HERE, because this program runs directly or on a

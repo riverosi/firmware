@@ -40,8 +40,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
-#PROJECT = projects_ciaa/test_ccan_send
-PROJECT = projects/dsp_example
+#PROJECT = projects_ciaa/test_a1335
+PROJECT = projects_ciaa/test_ccan_send
+#PROJECT = projects/dsp_example
 TARGET = lpc4337_m4
 BOARD = edu_ciaa_nxp
 #-------------------------------------------------------------------------------

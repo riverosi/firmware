@@ -74,13 +74,14 @@
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(460800);
+	Init_Uart_Ftdi(115200);
 	uint8_t var;
 	for (var = 0; var < 8; var++) {
 		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
 		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
 	}
 }
+
 /*=======================[SysTick_Handler]===================================*/
 static uint32_t cnt = 0;
 void SysTick_Handler(void) {
@@ -90,8 +91,8 @@ void SysTick_Handler(void) {
 	}
 	cnt++;
 }
-/*=====[Main function, program entry point after power on or reset]==========*/
 
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */

@@ -119,6 +119,7 @@ void GINT0_IRQHandler(void);
 /*==================[internal data definition]===============================*/
 
 const digitalIO gpio[] = {
+
 { 0x01, 0x00, 0x00, 0x04, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC1*/
 { 0x01, 0x01, 0x00, 0x08, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC2*/
 { 0x01, 0x02, 0x00, 0x09, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration TEC3*/
@@ -142,10 +143,11 @@ const digitalIO gpio[] = {
 { 0x04, 0x00, 0x02, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL0*/
 { 0x04, 0x02, 0x02, 0x02, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL2*/
 { 0x04, 0x03, 0x02, 0x03, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration T_FIL3*/
-/* CIAA GPIOS*/
-{ 0x02, 0x05, 0x05, 0x05, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO1*/
-{ 0x06, 0x07, 0x05, 0x0F, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO3*/
-{ 0x06, 0x01, 0x03, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO0*/
+
+		/* CIAA GPIOS*/
+		{ 0x02, 0x05, 0x05, 0x05, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO1*/
+		{ 0x06, 0x07, 0x05, 0x0F, MD_PUP | MD_EZI | MD_ZI | FUNC4 }, /* Configuration CIAA_GPIO3*/
+		{ 0x06, 0x01, 0x03, 0x00, MD_PUP | MD_EZI | MD_ZI | FUNC0 }, /* Configuration CIAA_GPIO0*/
 
 		{ 2, 1, 5, 1, FUNC4 },   //  8   DO0     BORN_14   DOUT0
 		{ 4, 6, 2, 6, FUNC0 },   //  9   DO1     BORN_06   DOUT1
