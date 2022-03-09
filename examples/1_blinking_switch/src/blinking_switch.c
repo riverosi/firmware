@@ -1,9 +1,14 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
+/*
+ * Cátedra: Electrónica Programable
+ * FIUNER - 2018
+ * Autor/es:
+ * JMReta - jmreta@ingenieria.uner.edu.ar
+ *
+ *
+ *
+ * Revisión:
+ * 07-02-18: Versión inicial
+ * 01-04-19: V1.1 SM
  *
  * All rights reserved.
  *
@@ -35,46 +40,62 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
- **
- **/
-
-/*
- * Initials     Name
- * ---------------------------
- * SM		Sebastian Mateos
- */
-
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
- */
-
 /*==================[inclusions]=============================================*/
+#include "../../../examples/1_blinking_switch/inc/blinking_switch.h"       /* <= own header */
+
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
+#include "led.h"
+#include "switch.h"
 
 /*==================[macros and definitions]=================================*/
+#define COUNT_DELAY 3000000
+/*==================[internal data definition]===============================*/
 
-/*==================[internal data declaration]==============================*/
+void Delay(void)
+{
+	uint32_t i;
+
+	for(i=COUNT_DELAY; i!=0; i--)
+	{
+		   asm  ("nop");
+	}
+}
 
 /*==================[internal functions declaration]=========================*/
 
-/*==================[internal data definition]===============================*/
-
 /*==================[external data definition]===============================*/
-
-/*==================[internal functions definition]==========================*/
 
 /*==================[external functions definition]==========================*/
 
-void SystemClockInit(void)
+int main(void)
 {
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+	uint8_t teclas;
+	SystemClockInit();
+	LedsInit();
+	SwitchesInit();
+	LedOn(LED_3);
+    while(1)
+    {
+    	teclas  = SwitchesRead();
+    	switch(teclas)
+    	{
+    		case SWITCH_2:
+    			LedOn(LED_1);
+    			Delay();
+    			LedOff(LED_1);
+    			Delay();
+    		break;
+    		case SWITCH_3:
+    			LedOn(LED_2);
+    			Delay();
+    			LedOff(LED_2);
+    			Delay();
+    		break;
+    	}
+	}
+
+    
 }
 
 /*==================[end of file]============================================*/
+

@@ -1,9 +1,14 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
+/*
+ * Cátedra: Electrónica Programable
+ * FIUNER - 2018
+ * Autor/es:
+ * JMReta - jmreta@ingenieria.uner.edu.ar
+ *
+ *
+ *
+ * Revisión:
+ * 07-02-18: Versión inicial
+ * 01-04-19: V1.1 SM
  *
  * All rights reserved.
  *
@@ -35,46 +40,50 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
- **
- **/
-
-/*
- * Initials     Name
- * ---------------------------
- * SM		Sebastian Mateos
- */
-
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
- */
-
 /*==================[inclusions]=============================================*/
+#include "../../../examples/0_blinking/inc/blinking.h"       /* <= own header */
+
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
+#include "led.h"
 
 /*==================[macros and definitions]=================================*/
-
-/*==================[internal data declaration]==============================*/
-
-/*==================[internal functions declaration]=========================*/
+#define COUNT_DELAY 3000000
 
 /*==================[internal data definition]===============================*/
 
-/*==================[external data definition]===============================*/
 
-/*==================[internal functions definition]==========================*/
+
+/*==================[internal functions declaration]=========================*/
+
+void Delay(void)
+{
+	uint32_t i;
+
+	for(i=COUNT_DELAY; i!=0; i--)
+	{
+		   asm  ("nop");
+	}
+}
+
+/*==================[external data definition]===============================*/
 
 /*==================[external functions definition]==========================*/
 
-void SystemClockInit(void)
+int main(void)
 {
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+	SystemClockInit();
+	Init_Leds();
+
+    while(1)
+    {
+    	Led_On(RED_LED);
+		Delay();
+		Led_Off(RED_LED);
+		Delay();
+	}
+
+	return 0;
 }
 
 /*==================[end of file]============================================*/
+

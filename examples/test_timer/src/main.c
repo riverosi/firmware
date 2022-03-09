@@ -1,11 +1,7 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
- *
+/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
  * All rights reserved.
+ *
+ * This file is part of CIAA Firmware.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,46 +31,76 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
+/** \brief Blinking Bare Metal example source file
+ **
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
+
+/** \addtogroup CIAA_Firmware CIAA Firmware
+ ** @{ */
+
+/** \addtogroup Examples CIAA Firmware Examples
+ ** @{ */
+/** \addtogroup Baremetal Bare Metal example source file
+ ** @{ */
 
 /*
  * Initials     Name
  * ---------------------------
- * SM		Sebastian Mateos
+ *
  */
 
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
+ * yyyymmdd v0.0.1 initials initial version
  */
 
 /*==================[inclusions]=============================================*/
+#include "../../../examples/test_timer/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
+/*=====[Inclusions of function dependencies]=================================*/
+void blink_led(void);
+/*=====[Definition macros of private constants]==============================*/
 
-/*==================[macros and definitions]=================================*/
+/*=====[Definitions of extern global variables]==============================*/
 
-/*==================[internal data declaration]==============================*/
+/*=====[Definitions of public global variables]==============================*/
+timer_config timer_led = {TIMER_B, 1000, &blink_led };
+/*=====[Definitions of private global variables]=============================*/
 
-/*==================[internal functions declaration]=========================*/
-
-/*==================[internal data definition]===============================*/
-
-/*==================[external data definition]===============================*/
-
-/*==================[internal functions definition]==========================*/
-
-/*==================[external functions definition]==========================*/
-
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+void blink_led(void){
+	Led_Toggle(GREEN_LED);
 }
 
+/*=====[Main function, program entry point after power on or reset]==========*/
+
+int main(void) {
+
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	TimerInit(&timer_led);
+	TimerStart(TIMER_B);
+	// ----- Repeat for ever -------------------------
+	while (TRUE) {
+		__WFI();
+	}
+
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
+
+	return 0;
+
+}
+
+
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
+

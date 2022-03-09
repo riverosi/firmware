@@ -1,11 +1,7 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
- *
+/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
  * All rights reserved.
+ *
+ * This file is part of CIAA Firmware.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,46 +31,69 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
+/** \brief Blinking Bare Metal example source file
+ **
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
+
+/** \addtogroup CIAA_Firmware CIAA Firmware
+ ** @{ */
+
+/** \addtogroup Examples CIAA Firmware Examples
+ ** @{ */
+/** \addtogroup Baremetal Bare Metal example source file
+ ** @{ */
 
 /*
  * Initials     Name
  * ---------------------------
- * SM		Sebastian Mateos
- */
+ *
+ */	
 
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
+ * yyyymmdd v0.0.1 initials initial version
  */
 
 /*==================[inclusions]=============================================*/
+#include "../../../examples/app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
 
-/*==================[macros and definitions]=================================*/
 
-/*==================[internal data declaration]==============================*/
 
-/*==================[internal functions declaration]=========================*/
+int main(void)
+{ 
 
-/*==================[internal data definition]===============================*/
 
-/*==================[external data definition]===============================*/
 
-/*==================[internal functions definition]==========================*/
+   /* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(460800);
+	LedsInit();
+	SysTick_Config(SystemCoreClock/1000);/*llamada systick cada 1ms*/
 
-/*==================[external functions definition]==========================*/
 
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+
+
+    //Variables
+   
+	    
+	while(TRUE){
+			__WFI ();
+		};
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
+
+	return 0;
+
+
 }
 
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
+

@@ -58,40 +58,26 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
+#include "../../../examples/test_i2c_interrupt/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-//FPU dependences
-#define ARM_MATH_CM4
-#define __FPU_PRESENT 1
-#include "arm_math.h"
-#include "arm_const_structs.h"
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
 /*=====[Definitions of extern global variables]==============================*/
-
+static union {
+	/** Union data for stream in UART*/
+	uint16_t angle;
+	uint8_t buffer_string[2];
+} data_union;
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
-
-/*==================[Init_Hardware]==========================================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
-	}
-	angle_i2cDriverInit(ANGLE_SA0SA1_00);
-}
 /*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
+static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
 void SysTick_Handler(void) {
-	if (cnt == 200) {
-		GPIOToggle(CIAA_DO7);
+	if (cnt == 500) {
+		Led_Toggle(RGB_G_LED);
 		cnt = 0;
 	}
 	cnt++;
@@ -102,15 +88,16 @@ int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	Init_Hardware();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	angle_i2cDriverInit(ANGLE_SA0SA1_00);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint16_t angle;
-	uint32_t time; //for use to measure the elapsed time
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		DWTStart();
-		angle = angle_getAngle();
-		time = DWTStop();
+		data_union.angle = angle_getAngle();
+		Chip_UART_SendBlocking(USB_UART, data_union.buffer_string, 2);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

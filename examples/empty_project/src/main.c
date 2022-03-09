@@ -1,11 +1,7 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
- *
+/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
  * All rights reserved.
+ *
+ * This file is part of CIAA Firmware.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,46 +31,76 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
+/** \brief Blinking Bare Metal example source file
+ **
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
+
+/** \addtogroup CIAA_Firmware CIAA Firmware
+ ** @{ */
+
+/** \addtogroup Examples CIAA Firmware Examples
+ ** @{ */
+/** \addtogroup Baremetal Bare Metal example source file
+ ** @{ */
 
 /*
  * Initials     Name
  * ---------------------------
- * SM		Sebastian Mateos
+ *
  */
 
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
+ * yyyymmdd v0.0.1 initials initial version
  */
 
 /*==================[inclusions]=============================================*/
+#include "../../../examples/empty_project/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
+/*=====[Inclusions of function dependencies]=================================*/
 
-/*==================[macros and definitions]=================================*/
+/*=====[Definition macros of private constants]==============================*/
+#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+/*=====[Definitions of extern global variables]==============================*/
 
-/*==================[internal data declaration]==============================*/
+/*=====[Definitions of public global variables]==============================*/
 
-/*==================[internal functions declaration]=========================*/
+/*=====[Definitions of private global variables]=============================*/
 
-/*==================[internal data definition]===============================*/
+/*=====[Main function, program entry point after power on or reset]==========*/
 
-/*==================[external data definition]===============================*/
+int main(void) {
 
-/*==================[internal functions definition]==========================*/
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	// ----- Repeat for ever -------------------------
+	while (TRUE) {
+		Led_Toggle(RGB_B_LED);
+		StopWatch_DelayMs(500);
+		__WFI();
+	}
 
-/*==================[external functions definition]==========================*/
+	// YOU NEVER REACH HERE, because this program runs directly or on a
+	// microcontroller and is not called by any Operating System, as in the
+	// case of a PC program.
 
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+	return 0;
+
 }
+/*=======================[SysTick_Handler]===================================*/
+void SysTick_Handler(void) {
 
+}
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
+

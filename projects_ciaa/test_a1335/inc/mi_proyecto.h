@@ -64,6 +64,7 @@
 #include "UART.h"
 #include "stopwatch.h"
 #include "__angle_driver.h"
+#include "dwt.h"
 
 
 #ifdef __cplusplus

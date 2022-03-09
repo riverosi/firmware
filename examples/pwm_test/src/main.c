@@ -58,59 +58,98 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
+#include "../../../examples/pwm_test/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-//FPU dependences
-#define ARM_MATH_CM4
-#define __FPU_PRESENT 1
-#include "arm_math.h"
-#include "arm_const_structs.h"
 /*=====[Inclusions of function dependencies]=================================*/
-
+#define SISTICK_CALL_FREC	1000
+#define BUFFLEN 16
+#define UART_BAUDRATE 115200
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
+static volatile uint32_t cnt = 0;		/** Variable used for SysTick Counter */
+static volatile int dutyCycle_led1 = 0;	/** Variable used for update dutyCycle */
+
+RINGBUFF_T rbRx; 			/** Ring buffer for UART*/
+uint8_t rxBuff[BUFFLEN]; 	/** Array data for UART*/
 
 /*=====[Definitions of private global variables]=============================*/
-
-/*==================[Init_Hardware]==========================================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+void interruption_tec_2(void) {
+	/* Increment duty */
+	dutyCycle_led1 = dutyCycle_led1 + 8;
+	if (dutyCycle_led1 > 255) {
+		dutyCycle_led1 = 255;
 	}
-	angle_i2cDriverInit(ANGLE_SA0SA1_00);
 }
-/*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
+void interruption_tec_3(void) {
+	/* Decrement duty */
+	dutyCycle_led1 = dutyCycle_led1 - 8;
+	if (dutyCycle_led1 < 0) {
+		dutyCycle_led1 = 0;
+	}
+}
+void interruption_tec_4(void){
+	dutyCycle_led1 = 0;
+}
+
 void SysTick_Handler(void) {
-	if (cnt == 200) {
-		GPIOToggle(CIAA_DO7);
-		cnt = 0;
+	if ((cnt % 50) == 0) {
+		pwmWrite(PWM7, (uint8_t)dutyCycle_led1);// LED1 -> not inverter
+		pwmWrite(PWM0, (uint8_t)dutyCycle_led1);// T_FIL1 -> Not mask is used
 	}
 	cnt++;
 }
-/*=====[Main function, program entry point after power on or reset]==========*/
 
+void uart_init_intact(void) {
+	Chip_SCU_PinMuxSet(7, 1, SCU_MODE_PULLDOWN | SCU_MODE_FUNC6);
+	Chip_SCU_PinMuxSet(7, 2,
+	SCU_MODE_INACT | SCU_MODE_INBUFF_EN | SCU_MODE_ZIF_DIS | SCU_MODE_FUNC6);
+	Chip_UART_Init( LPC_USART2);
+	Chip_UART_ConfigData( LPC_USART2,
+	UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
+	Chip_UART_SetBaud( LPC_USART2, UART_BAUDRATE);
+	Chip_UART_SetupFIFOS( LPC_USART2,
+			( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
+					| UART_FCR_TRG_LEV3));
+	Chip_UART_IntEnable( LPC_USART2, ( UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_EnableIRQ(USART2_IRQn);
+	Chip_UART_TXEnable( LPC_USART2);
+}
+
+void UART2_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB(LPC_USART2, &rbRx);//pone los datos que se mandan por UART en el ring buffer
+	uint8_t data_array[2] = { 0 };
+	if (Chip_UART_ReadRB( LPC_USART2, &rbRx, &data_array, 2) == 2) {
+			dutyCycle_led1 = (((uint16_t) data_array[0]) << 8) | data_array[1];
+			}
+}
+
+/*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	Init_Hardware();
+	fpuInit();
+	StopWatch_Init();
+	Init_Leds();
+	pwmInit(0,PWM_ENABLE); // Enable pwm
+	pwmInit(PWM0, PWM_ENABLE_OUTPUT);/* T_FIL1 */
+	pwmInit(PWM7, PWM_ENABLE_OUTPUT);/*LED1 PWM*/
+	pwmInit(PWM9, PWM_ENABLE_OUTPUT);/*LED3 PWM*/
+	GPIOInit(TEC_2, GPIO_INPUT);
+	GPIOActivInt(GPIOGP0, TEC_2, interruption_tec_2, IRQ_LEVEL_LOW);
+	GPIOInit(TEC_3, GPIO_INPUT);
+	GPIOActivInt(GPIOGP1, TEC_3, interruption_tec_3, IRQ_LEVEL_LOW);
+	GPIOInit(TEC_4, GPIO_INPUT);
+	GPIOActivInt(GPIOGP2, TEC_4, interruption_tec_4, IRQ_LEVEL_LOW);
+	uart_init_intact();
+	RingBuffer_Init(&rbRx, rxBuff, 1, BUFFLEN);
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint16_t angle;
-	uint32_t time; //for use to measure the elapsed time
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		DWTStart();
-		angle = angle_getAngle();
-		time = DWTStop();
+		__WFI();
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

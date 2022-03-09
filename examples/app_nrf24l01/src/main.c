@@ -50,6 +50,21 @@
  * ---------------------------
  *
  */
+/** @section wiring Wiring
+ * ##Transmitter - Reciber NRF24L01 ##
+ *
+ * | NRF24L01 pins (PTX) | EDU-CIAA pins |
+ * |:-------------------:|:-------------:|
+ * |         VCC         |    +3.3V      |
+ * |         GND         |    GND        |
+ * |         CSN         |    GPIO1      |
+ * |         CE	         |    GPIO3      |
+ * |         SCK         |    SPI_SCK    |
+ * |         MOSI        |    SPI_MOSI   |
+ * |         IRQ         |    GPIO5      |
+ * |         MISO        |    SPI_MISO   |
+ *
+ */
 
 /*
  * modification history (new versions first)
@@ -58,67 +73,126 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
+#include "../../../examples/app_nrf24l01/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-//FPU dependences
-#define ARM_MATH_CM4
-#define __FPU_PRESENT 1
-#include "arm_math.h"
-#include "arm_const_structs.h"
-/*=====[Inclusions of function dependencies]=================================*/
+#include "chip.h"
+/*==================[Definitions]=============================================*/
+/* Change 1 to activate */
+#define asTX 0
+#define asRX 1
 
-/*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
-/*=====[Definitions of extern global variables]==============================*/
-
-/*=====[Definitions of public global variables]==============================*/
-
-/*=====[Definitions of private global variables]=============================*/
-
-/*==================[Init_Hardware]==========================================*/
+/*==================[Init_Hardware]=============================================*/
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(115200);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
-	}
-	angle_i2cDriverInit(ANGLE_SA0SA1_00);
+	Init_Switches();
+	Init_Leds();
 }
-/*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
+/*==================[SystickHandler]=============================================*/
+uint32_t cnt = 0;
 void SysTick_Handler(void) {
+
 	if (cnt == 200) {
-		GPIOToggle(CIAA_DO7);
+
+#if asTX
+		GPIOToggle(LEDRGB_R);
+		Nrf24TxTick();
+#endif
+		GPIOToggle(LEDRGB_R);
 		cnt = 0;
 	}
 	cnt++;
 }
-/*=====[Main function, program entry point after power on or reset]==========*/
 
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
-	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint16_t angle;
-	uint32_t time; //for use to measure the elapsed time
-	// ----- Repeat for ever -------------------------
-	while (TRUE) {
-		DWTStart();
-		angle = angle_getAngle();
-		time = DWTStop();
-	}
+	/*	Select mode of NRF	*/
+#if asTX
 
-	// YOU NEVER REACH HERE, because this program runs directly or on a
-	// microcontroller and is not called by any Operating System, as in the
-	// case of a PC program.
+	nrf24l01_t TX;
+	TX.spi.cfg = nrf24l01_spi_default_cfg;
+	TX.cs = GPIO1;
+	TX.ce = GPIO3;
+	TX.irq = GPIO5;
+	TX.mode = PTX;
+	TX.en_ack_pay = TRUE;
+
+	Nrf24Init(&TX);
+	/* Enable ack payload */
+	Nrf24EnableFeatureAckPL(&TX);
+
+	Nrf24PrimaryDevISRConfig(&TX);
+
+	uint8_t tx_config = Nrf24RegisterRead8(&TX , NRF24_CONFIG);
+#endif
+
+#if asRX
+
+	nrf24l01_t RX;
+	RX.spi.cfg = nrf24l01_spi_default_cfg;
+	RX.cs = GPIO1;
+	RX.ce = GPIO3;
+	RX.irq = GPIO5;
+	RX.mode = PRX;
+	RX.en_ack_pay = TRUE;
+
+	Nrf24Init(&RX);
+
+	/* Enable ack payload */
+	Nrf24EnableFeatureAckPL(&RX);
+
+	/* Set the first ack payload */
+	uint8_t first_ack[21] = "First ack received!!!";
+	Nrf24SetAckPayload(&RX, first_ack, 0x00, 21);
+	Nrf24SetAckPayload(&RX, first_ack, 0x01, 21);
+	/* Enable RX mode */
+	Nrf24EnableRxMode(&RX);
+	Nrf24SecondaryDevISRConfig(&RX);
+
+	uint8_t rx_config = Nrf24RegisterRead8(&RX, NRF24_CONFIG);
+
+#endif
+
+	SysTick_Config(SystemCoreClock / 1000);/*call systick every 1ms*/
+
+	uint8_t key = 0;
+
+	while (TRUE) {
+
+#if asTX
+
+		key = Read_Switches();
+
+		snd_to_PRX[0] = key;
+
+#endif
+
+#if asRX
+		/* Turns on led associated with button if data is received from PTX */
+		if (rcv_fr_PTX[0] == 1) {
+			GPIOOn(LED1);
+		}
+		if (rcv_fr_PTX[0] == 2) {
+			GPIOOn(LED2);
+		}
+		if (rcv_fr_PTX[0] == 4) {
+			GPIOOn(LED3);
+		}
+		if (rcv_fr_PTX[0] == 0) {
+			GPIOOff(LED1);
+			GPIOOff(LED2);
+			GPIOOff(LED3);
+		}
+#endif
+		__WFI();
+	};
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
 
 	return 0;
-
 }
 
 /** @} doxygen end group definition */

@@ -58,59 +58,55 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-//FPU dependences
-#define ARM_MATH_CM4
-#define __FPU_PRESENT 1
-#include "arm_math.h"
-#include "arm_const_structs.h"
+#include <string.h>
+#include "../../../examples/send_rs485/inc/mi_proyecto.h"       /* <= own header */
+
+
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define SYSTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define PAYLOAD_SIZE 8
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
 
 /*=====[Definitions of private global variables]=============================*/
 
-/*==================[Init_Hardware]==========================================*/
-void Init_Hardware(void) {
-	fpuInit();
-	StopWatch_Init();
-	Init_Uart_Ftdi(115200);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
-	}
-	angle_i2cDriverInit(ANGLE_SA0SA1_00);
-}
+
 /*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
+static volatile uint32_t cnt = 0; /** SysTick Counter variable*/
+/**
+ * Only for blinky
+ */
 void SysTick_Handler(void) {
-	if (cnt == 200) {
-		GPIOToggle(CIAA_DO7);
+	if (cnt == 250) {
+		Led_Toggle(RGB_G_LED);
 		cnt = 0;
 	}
 	cnt++;
 }
 /*=====[Main function, program entry point after power on or reset]==========*/
-
 int main(void) {
 
 	/* perform the needed initialization here */
 	SystemClockInit();
-	Init_Hardware();
-	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
-	uint16_t angle;
-	uint32_t time; //for use to measure the elapsed time
+	fpuInit();
+	Init_Leds();
+	StopWatch_Init();
+	Init_Uart_Rs485();
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);/*call systick every 1ms*/
+	uint8_t arr2[PAYLOAD_SIZE];
+	uint32_t header = 0xFFFFFFFF;
+	float data_example = 0.0f;
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
-		DWTStart();
-		angle = angle_getAngle();
-		time = DWTStop();
+		data_example = 1.0f;
+		memcpy(&arr2[0], &header, sizeof(uint32_t));
+		memcpy(&arr2[4], &data_example, sizeof(float));
+		SendStringRs485(arr2, PAYLOAD_SIZE);
+		StopWatch_DelayMs(500);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

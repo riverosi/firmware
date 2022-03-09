@@ -1,11 +1,7 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
- *
+/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
  * All rights reserved.
+ *
+ * This file is part of CIAA Firmware.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,46 +31,80 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
+/** \brief Blinking Bare Metal example source file
+ **
+ ** This is a mini example of the CIAA Firmware.
  **
  **/
+
+/** \addtogroup CIAA_Firmware CIAA Firmware
+ ** @{ */
+
+/** \addtogroup Examples CIAA Firmware Examples
+ ** @{ */
+/** \addtogroup Baremetal Bare Metal example source file
+ ** @{ */
 
 /*
  * Initials     Name
  * ---------------------------
- * SM		Sebastian Mateos
+ *
  */
 
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
+ * yyyymmdd v0.0.1 initials initial version
  */
 
 /*==================[inclusions]=============================================*/
+#include "../../../examples/test_interruption/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
-#include "chip.h"
-#include "bool.h"
-
-/*==================[macros and definitions]=================================*/
-
-/*==================[internal data declaration]==============================*/
-
-/*==================[internal functions declaration]=========================*/
-
-/*==================[internal data definition]===============================*/
-
-/*==================[external data definition]===============================*/
-
-/*==================[internal functions definition]==========================*/
-
-/*==================[external functions definition]==========================*/
-
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+#include "led.h"
+void interruption_tec_2(void){
+	GPIOToggle(LED1);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED1);
+}
+void interruption_tec_3(void){
+	GPIOToggle(LED2);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED2);
+}
+void interruption_tec_4(void){
+	GPIOToggle(LED3);
+	StopWatch_DelayMs(500);
+	GPIOToggle(LED3);
 }
 
+int main(void) {
+	/* perform the needed initialization here */
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	Init_Leds();
+
+	GPIOInit(TEC_2, GPIO_INPUT);
+	GPIOActivInt( GPIOGP0 , TEC_2 , interruption_tec_2 , IRQ_EDGE_FALL);
+
+	GPIOInit(TEC_3, GPIO_INPUT);
+	GPIOActivInt( GPIOGP1 , TEC_3 , interruption_tec_3, IRQ_EDGE_RISE);
+
+	GPIOInit(TEC_4, GPIO_INPUT);
+	GPIOActivInt( GPIOGP2 , TEC_4 , interruption_tec_4, IRQ_LEVEL_LOW);
+
+	while (TRUE) {
+		__WFI();
+	};
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
+
+	return 0;
+
+}
+
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
+/** @} doxygen end group definition */
 /*==================[end of file]============================================*/
+

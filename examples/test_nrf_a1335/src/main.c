@@ -1,4 +1,4 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
+/* Copyright 2021, Riveros Ignacio
  * All rights reserved.
  *
  * This file is part of CIAA Firmware.
@@ -33,7 +33,7 @@
 
 /** \brief Blinking Bare Metal example source file
  **
- ** This is a mini example of the CIAA Firmware.
+ **
  **
  **/
 
@@ -53,18 +53,19 @@
 /** @section wiring Wiring
  * ##Transmitter - Reciber NRF24L01 ##
  *
- * | NRF24L01 pins (PTX) | CIAA pins 	 |
+ * | NRF24L01 pins (PTX) | EDU-CIAA pins |
  * |:-------------------:|:-------------:|
  * |         VCC         |    +3.3V      |
  * |         GND         |    GND        |
- * |         CSN         |    CIAA_GPIO0 |
- * |         CE	         |    CIAA_GPIO3 |
+ * |         CSN         |    GPIO1      |
+ * |         CE	         |    GPIO3      |
  * |         SCK         |    SPI_SCK    |
  * |         MOSI        |    SPI_MOSI   |
- * |         IRQ         |    CIAA_GPIO1 |
+ * |         IRQ         |    GPIO5      |
  * |         MISO        |    SPI_MISO   |
  *
  */
+
 /*
  * modification history (new versions first)
  * -----------------------------------------------------------
@@ -72,83 +73,78 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "mi_proyecto.h"       /* <= own header */
+#include "../../../examples/test_nrf_a1335/inc/mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
 #include "chip.h"
-#include <string.h>
-/*=====[Inclusions of function dependencies]=================================*/
-
-/*=====[Definition macros of private constants]==============================*/
+/*==================[Definitions]============================================*/
 #define SYSTICK_CALL_FREC	100  /*call SysTick every 10ms 1/100Hz*/
-#define UART_BAUDRATE 115200
+#define ANGLE_I2C_CLK 100000
 
 typedef struct {
 	float force_node; /** <= force in [Kg]*/
+	float time_node; /** <= time in [ms]*/
 	float battery_voltage; /** <= voltage in battery [Volts]*/
 	bool data_ready; /** <= data ready flag*/
 } nrf24l01p_pedal_data;
 
+
+/*=====[Inclusions of function dependencies]=================================*/
+
+/*=====[Definition macros of private constants]==============================*/
+static nrf24l01_t RX;
+static nrf24l01p_pedal_data RX_data[2] = { 0 };
+static volatile uint32_t cnt = 0;/** Variable used for SysTick Counter */
+static volatile bool flag_serial_data_print = FALSE; /** Flag for print data in serial port*/
+
 /*=====[Definitions of extern global variables]==============================*/
 
-/*=====[Definitions of public global variables]==============================*/
-/** RX_data[0] Store Pedal Left data
- * RX_data[1] Store Pedal Rigth data
- */
-nrf24l01p_pedal_data RX_data[2] = { 0 };
-/** Flag for print data in serial port */
-static volatile bool flag_serial_data_print = FALSE;
-/*=====[Definitions of private global variables]=============================*/
-
-/*==================[Init_Hardware]==========================================*/
+/*=====[Definitions of public global functions]==============================*/
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
-	Init_Uart_Ftdi(UART_BAUDRATE);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
-		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
-		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
-	}
-}
-void updateNrfData(void) {
-	float float_data = 0.0f;
-	memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
-	if (rcv_fr_PTX[0] == 0x01) { /* Pedal L */
-		RX_data[0].data_ready = true;
-		RX_data[0].force_node = float_data;
-	}
-	if (rcv_fr_PTX[0] == 0x02) { /* Pedal R */
-		RX_data[1].data_ready = true;
-		RX_data[1].force_node = float_data;
-	}
-}
+	Init_Uart_Ftdi(115200);
+	Init_Switches();
+	Init_Leds();
+	StopWatch_DelayMs(100);
+	angle_i2cDriverInit(ANGLE_I2C_CLK, ANGLE_SA0SA1_00);
+	dacInit(DAC_ENABLE);
+	//nrf configurations
+	RX.spi.cfg = nrf24l01_spi_default_cfg;
+	RX.cs = GPIO1;
+	RX.ce = GPIO3;
+	RX.irq = GPIO5;
+	RX.mode = PRX;
+	RX.en_ack_pay = FALSE;
+	Nrf24Init(&RX);
+	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
+	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
+	Nrf24EnableRxMode(&RX); /* Enable RX mode */
+	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
 
-void clear_array(void) {
-	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
 }
-
 void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 	/* Protocol Serial:
 	 * length: 1 + 4*N bytes
-	 * |0xFF|4 x data_float|....|4 x data_float|
+	 * |0xFF|4 x data_float|4 x data_float|
 	 */
 	Chip_UART_SendByte(USB_UART, 0xff); // serial init frame is 0xFF
 	Chip_UART_SendBlocking(USB_UART, &(rx_buffer)->force_node, sizeof(float));
 	Chip_UART_SendBlocking(USB_UART, &(rx_buffer + 1)->force_node,
 			sizeof(float));
 }
-
+void flushDataNrf(void) {
+	memset(rcv_fr_PTX, 0x00, 32); //Set array of data input whit zeros
+}
 /*=====[Definitions of public global variables]=============================*/
 
 /*==================[SystickHandler]=========================================*/
-/** Variable used for SysTick Counter */
-static volatile uint32_t cnt = 0;
 void SysTick_Handler(void) {
-	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
+	if ((cnt % 1) == 0) { /*flag change every 50 ms*/
 		flag_serial_data_print = TRUE;
 	}
 	if (cnt == 50) { /*LED3 toggle every 500 ms*/
-		GPIOToggle(CIAA_DO4);
+		Led_Toggle(GREEN_LED);
 		cnt = 0;
 	}
 	cnt++;
@@ -159,25 +155,18 @@ int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
-	nrf24l01_t RX;
-	RX.spi.cfg = nrf24l01_spi_default_cfg;
-	RX.cs = CIAA_GPIO0;
-	RX.ce = CIAA_GPIO3;
-	RX.irq = CIAA_GPIO1;
-	RX.mode = PRX;
-	RX.en_ack_pay = FALSE;
-
-	Nrf24Init(&RX);
-	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
-	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
-	Nrf24EnableRxMode(&RX); /* Enable RX mode */
-	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
-
-	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);
 
 	float float_data = 0.0f;
+	/* RX_data[0] Store Pedal Left data
+	 * RX_data[1] Store Pedal Rigth data
+	 */
+	uint16_t angle;
 
-	while (TRUE) {
+	for(;;) {
+
+		angle = angle_getAngle();
+
+		dacWrite(angle);
 
 		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
 
@@ -185,34 +174,32 @@ int main(void) {
 			RX_data[0].data_ready = true;
 			RX_data[0].force_node = float_data;
 			if (float_data > 0.2) {
-				GPIOOn(CIAA_DO6);
+				Led_On(RGB_B_LED);
 			} else {
-				GPIOOff(CIAA_DO6);
+				Led_Off(RGB_B_LED);
 			}
 		}
 		if (rcv_fr_PTX[0] == 0x02) {/*Pedal R*/
 			RX_data[1].data_ready = true;
 			RX_data[1].force_node = float_data;
 			if (float_data > 0.2) {
-				GPIOOn(CIAA_DO7);
+				Led_On(RED_LED);
 			} else {
-				GPIOOff(CIAA_DO7);
+				Led_Off(RED_LED);
 			}
 		}
 
 		if (flag_serial_data_print) {
 			print_serial_data(RX_data);
-			clear_array();
 			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
 
+		//flushDataNrf();
+
 	};
-	// YOU NEVER REACH HERE, because this program runs directly or on a
-	// microcontroller and is not called by any Operating System, as in the
-	// case of a PC program.
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
 
 	return 0;
-
 }
 
 /** @} doxygen end group definition */

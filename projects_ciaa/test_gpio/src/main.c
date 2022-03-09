@@ -1,4 +1,4 @@
-/* Copyright 2018, Eduardo Filomena - Gonzalo Cuenca
+/* Copyright 2022 - Riveros Ignacio
  * All rights reserved.
  *
  * This file is part of CIAA Firmware.
@@ -48,7 +48,7 @@
 /*
  * Initials     Name
  * ---------------------------
- *
+ *	RI			Riveros Ignacio
  */
 
 /*
@@ -83,9 +83,9 @@ void Init_Hardware(void) {
 }
 
 /*=======================[SysTick_Handler]===================================*/
-static uint32_t cnt = 0;
+static volatile uint32_t cnt = 0;
 void SysTick_Handler(void) {
-	if (cnt == 200) {
+	if (cnt == 500) {
 		GPIOToggle(CIAA_DO7);
 		cnt = 0;
 	}
@@ -94,7 +94,6 @@ void SysTick_Handler(void) {
 
 /*=====[Main function, program entry point after power on or reset]==========*/
 int main(void) {
-
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();

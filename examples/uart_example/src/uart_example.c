@@ -1,9 +1,14 @@
-	/* Copyright 2019,
- * Sebastian Mateos
- * smateos@ingenieria.uner.edu.ar
- * Facultad de Ingeniería
- * Universidad Nacional de Entre Ríos
- * Argentina
+/*
+ * Cátedra: Electrónica Programable
+ * FIUNER - 2018
+ * Autor/es:
+ * JMReta - jmreta@ingenieria.uner.edu.ar
+ *
+ *
+ *
+ * Revisión:
+ * 07-02-18: Versión inicial
+ * 01-04-19: V1.1 SM
  *
  * All rights reserved.
  *
@@ -35,46 +40,75 @@
  *
  */
 
-/** \brief Bare Metal driver for the clock of EDU-CIAA board.
- **
- **/
-
-/*
- * Initials     Name
- * ---------------------------
- * SM		Sebastian Mateos
- */
-
-/*
- * modification history (new versions first)
- * -----------------------------------------------------------
- * 20190228 v0.1 SM initial version
- */
-
 /*==================[inclusions]=============================================*/
+#include "../../../examples/uart_example/inc/uart_example.h"       /* <= own header */
+
 #include "systemclock.h"
 #include "chip.h"
-#include "bool.h"
 
 /*==================[macros and definitions]=================================*/
-
-/*==================[internal data declaration]==============================*/
+uint16_t counter_systick = 0;
+uint8_t buffer_uart[] = { 128, 255, 0, 0, 1, 1, 127, 127, 0, 0, 1, 1, 255, 255,
+		127, 127, 0, 0 };
+/*==================[internal data definition]===============================*/
 
 /*==================[internal functions declaration]=========================*/
 
-/*==================[internal data definition]===============================*/
-
 /*==================[external data definition]===============================*/
-
-/*==================[internal functions definition]==========================*/
 
 /*==================[external functions definition]==========================*/
 
-void SystemClockInit(void)
-{
- 	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+//---------------------------------------------------------------------------------------------------
+/*Sistick Handler*/
+void SysTick_Handler(void) {
+	counter_systick++;
+	if (counter_systick % 1000 == 0) {
+		Chip_UART_SendBlocking(USB_UART, buffer_uart, sizeof(buffer_uart));
+		Chip_UART_SendBlocking(USB_UART, "\n", 1);
+		GPIOToggle(CIAA_DO7);
+	}
+}
+//---------------------------------------------------------------------------------------------------
+int main(void) {
+	SystemClockInit();
+	fpuInit();
+	StopWatch_Init();
+	Init_Uart_Ftdi(115200);
+	uint8_t var;
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
+	}
+	GPIOInit(CIAA_GPIO1, GPIO_OUTPUT);
+	GPIOInit(CIAA_GPIO3, GPIO_OUTPUT);
+	GPIOInit(CIAA_GPIO0, GPIO_OUTPUT);
+
+	for (var = 0; var < 8; var++) {
+		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
+	}
+	SysTick_Config(SystemCoreClock / 1000);/*llamada systick cada 1ms*/
+	while (TRUE) {
+		while (ReadByte_Uart_Ftdi(&var)) {
+			if (var == '4') {
+				GPIOToggle(CIAA_DO4);
+				GPIOToggle(CIAA_GPIO1);
+			}
+			if (var == '5') {
+				GPIOToggle(CIAA_DO5);
+				GPIOToggle(CIAA_GPIO3);
+			}
+			if (var == '6') {
+				GPIOToggle(CIAA_DO6);
+				GPIOToggle(CIAA_GPIO0);
+			}
+
+		}
+		__WFI();
+	};
+	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado
+	 por ningun S.O. */
+
+	return 0;
 }
 
 /*==================[end of file]============================================*/
+
