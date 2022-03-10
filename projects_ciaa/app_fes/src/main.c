@@ -54,29 +54,107 @@
 /*==================[inclusions]=============================================*/
 #include "mi_proyecto.h"       /* <= own header */
 #include "systemclock.h"
+#include <string.h>
+//FPU dependences
+#define ARM_MATH_CM4
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+#include "arm_const_structs.h"
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
 #define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+#define ARRAY_SIZE 8
+#define BUFFLEN 32
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
+RINGBUFF_T rbRx;
+uint8_t rxBuff[BUFFLEN];
+static volatile Bool uart_flag = FALSE;
+nrf24l01_t RX;
+
+typedef struct {
+	uint32_t header;
+	//uint8_t size_packet;
+	float32_t angle;
+	float32_t forceL;
+	float32_t forceR;
+	float32_t fatigue;
+} appData_t;
 
 /*=====[Definitions of private global variables]=============================*/
 
+void app_nrf24_config(void) {
+	RX.spi.cfg = nrf24l01_spi_default_cfg;
+	RX.cs = CIAA_GPIO0;
+	RX.ce = CIAA_GPIO3;
+	RX.irq = CIAA_GPIO1;
+	RX.mode = PRX;
+	RX.en_ack_pay = FALSE;
+
+	Nrf24Init(&RX);
+	Nrf24SetRXPacketSize(&RX, 0x00, 32); // Set length of pipe 0 in 32 (used for the Pedal Left)
+	Nrf24SetRXPacketSize(&RX, 0x01, 32); // Set length of pipe 1 in 32 (used for the Pedal Right)
+	Nrf24EnableRxMode(&RX); /* Enable RX mode */
+	Nrf24SecondaryDevISRConfig(&RX); /* Config ISR (only use one module in PRX mode on board)*/
+}
+
+void app_rs485_irq_config(void) {
+	/* UART0 (RS485/Profibus) Only work with this configuration */
+	Chip_UART_Init(LPC_USART0);
+	Chip_UART_SetBaudFDR(LPC_USART0, 921600);
+	Chip_UART_SetupFIFOS(LPC_USART0,
+			(UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS
+					| UART_FCR_TRG_LEV3));
+
+	Chip_UART_ReadByte(LPC_USART0);
+	Chip_UART_TXEnable(LPC_USART0);
+
+	Chip_SCU_PinMux(9, 5, MD_PDN, FUNC7); /* P9_5: UART0_TXD */
+	Chip_SCU_PinMux(9, 6, MD_PLN | MD_EZI | MD_ZI, FUNC7); /* P9_6: UART0_RXD */
+	Chip_UART_SetRS485Flags(LPC_USART0,
+	UART_RS485CTRL_DCTRL_EN | UART_RS485CTRL_OINV_1);
+	Chip_SCU_PinMux(6, 2, MD_PDN, FUNC2); /* P6_2: UART0_DIR */
+	Chip_UART_IntEnable(LPC_USART0, (UART_IER_RBRINT | UART_IER_RLSINT));
+	NVIC_SetPriority(USART0_IRQn, 5);
+	NVIC_EnableIRQ(USART0_IRQn);
+}
+
 /*==================[Init_Hardware]==========================================*/
+/**
+ * Init hardware
+ */
 void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(115200);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
+	for (uint8_t var = 0; var < 8; var++) {
 		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
 		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
 	}
+	angle_i2cDriverInit(ANGLE_SA0SA1_00);
+	dacInit(DAC_ENABLE);
+	app_nrf24_config();
+	app_rs485_irq_config();
+	RingBuffer_Init(&rbRx, rxBuff, sizeof(uint8_t), BUFFLEN);
+	RingBuffer_Flush(&rbRx);
+}
+
+/*=======================[UART0_IRQHandler]==================================*/
+/**
+ * Read data on the rs485 port and put in the buffer
+ */
+void UART0_IRQHandler(void) {
+	Chip_UART_RXIntHandlerRB(LPC_USART0, &rbRx); //pone los datos que se mandan por UART en el ring buffer
+	Chip_UART_ReadRB(LPC_USART0, &rbRx, rxBuff, sizeof(float32_t)); //count in bytes always
+	uart_flag = TRUE;
 }
 
 /*=======================[SysTick_Handler]===================================*/
+/**
+ * Only Toggle led CIAA_DO7
+ */
 static volatile uint32_t cnt = 0;
 void SysTick_Handler(void) {
 	if (cnt == 500) {
@@ -92,9 +170,28 @@ int main(void) {
 	SystemClockInit();
 	Init_Hardware();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+
+	appData_t appData = {0};
+	//Init data frame
+	appData.header = 0xFFFFFFFF;
+	//appData.size_packet = 4*sizeof(float32_t);
+
 	// ----- Repeat for ever -------------------------
+
 	while (TRUE) {
 
+		if (rcv_fr_PTX[0] == 0x01) {/*Pedal L address*/
+			memcpy(&appData.forceL, &rcv_fr_PTX[1], sizeof(float32_t)); /*Convert array data to float data*/
+		}
+		if (rcv_fr_PTX[0] == 0x02) {/*Pedal R address*/
+			memcpy(&appData.forceR, &rcv_fr_PTX[1], sizeof(float32_t)); /*Convert array data to float data*/
+		}
+		float32_t angle = angle_getAngleRad();
+		memcpy(&appData.angle, &angle, sizeof(float32_t));
+
+		memcpy(&appData.fatigue, rxBuff, sizeof(float32_t));
+
+		Chip_UART_SendBlocking(USB_UART, &appData , sizeof(appData_t));
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

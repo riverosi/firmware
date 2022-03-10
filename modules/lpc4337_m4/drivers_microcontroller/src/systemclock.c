@@ -73,8 +73,8 @@
 void SystemClockInit(void)
 {
  	SystemCoreClockUpdate();
- 	//Chip_SetupIrcClocking();
- 	Chip_SetupXtalClocking();
+ 	Chip_SetupIrcClocking();
+ 	//Chip_SetupXtalClocking();
 }
 
 /*==================[end of file]============================================*/

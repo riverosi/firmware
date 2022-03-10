@@ -91,12 +91,15 @@ typedef struct {
 /*=====[Definitions of extern global variables]==============================*/
 
 /*=====[Definitions of public global variables]==============================*/
-/** RX_data[0] Store Pedal Left data
+
+/* RX_data[0] Store Pedal Left data
  * RX_data[1] Store Pedal Rigth data
  */
 nrf24l01p_pedal_data RX_data[2] = { 0 };
+
 /** Flag for print data in serial port */
 static volatile bool flag_serial_data_print = FALSE;
+
 /*=====[Definitions of private global variables]=============================*/
 
 /*==================[Init_Hardware]==========================================*/
@@ -104,12 +107,12 @@ void Init_Hardware(void) {
 	fpuInit();
 	StopWatch_Init();
 	Init_Uart_Ftdi(UART_BAUDRATE);
-	uint8_t var;
-	for (var = 0; var < 8; var++) {
+	for (uint8_t var = 0; var < 8; var++) {
 		GPIOInit(CIAA_DO0 + var, GPIO_OUTPUT);
 		GPIOInit(CIAA_DI0 + var, GPIO_INPUT);
 	}
 }
+
 void updateNrfData(void) {
 	float float_data = 0.0f;
 	memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
@@ -138,8 +141,6 @@ void print_serial_data(nrf24l01p_pedal_data *rx_buffer) {
 			sizeof(float));
 }
 
-/*=====[Definitions of public global variables]=============================*/
-
 /*==================[SystickHandler]=========================================*/
 /** Variable used for SysTick Counter */
 static volatile uint32_t cnt = 0;
@@ -147,14 +148,16 @@ void SysTick_Handler(void) {
 	if ((cnt % 5) == 0) { /*flag change every 50 ms*/
 		flag_serial_data_print = TRUE;
 	}
-	if (cnt == 50) { /*LED3 toggle every 500 ms*/
+	if (cnt == 50) { /*toggle every 500 ms*/
 		GPIOToggle(CIAA_DO4);
 		cnt = 0;
 	}
 	cnt++;
 }
+
 /*=====[Main function, program entry point after power on or reset]==========*/
-int main(void) {
+int main(void)
+{
 
 	/* perform the needed initialization here */
 	SystemClockInit();
@@ -177,7 +180,8 @@ int main(void) {
 
 	float float_data = 0.0f;
 
-	while (TRUE) {
+	while (TRUE)
+	{
 
 		memcpy(&float_data, &rcv_fr_PTX[1], sizeof(float_data)); /*Convert array data to float data*/
 
@@ -207,6 +211,7 @@ int main(void) {
 		}
 
 	};
+
 	// YOU NEVER REACH HERE, because this program runs directly or on a
 	// microcontroller and is not called by any Operating System, as in the
 	// case of a PC program.
