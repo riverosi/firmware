@@ -41,7 +41,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 PROJECT = projects_ciaa/app_fes
+#PROJECT = projects_ciaa/test_nrf24
 #PROJECT = examples/send_rs485
 TARGET = lpc4337_m4
-BOARD = ciaa_nxp
+BOARD = edu_ciaa_nxp
 #-------------------------------------------------------------------------------

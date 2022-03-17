@@ -59,7 +59,6 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "led.h"
 #include "gpio.h"
 #include "fpu_init.h"
 #include "UART.h"

@@ -187,7 +187,7 @@ int main(void) {
 			flag_serial_data_print = FALSE;/*Clear the flag*/
 		}
 
-		clear_array();
+		//clear_array();
 
 	};
 	/* NO DEBE LLEGAR NUNCA AQUI, debido a que a este programa no es llamado por ningun S.O. */
