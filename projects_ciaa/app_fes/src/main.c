@@ -63,10 +63,12 @@
 /*=====[Inclusions of function dependencies]=================================*/
 
 /*=====[Definition macros of private constants]==============================*/
-#define SISTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+//Systick frequency definition
+#define SYSTICK_CALL_FREC	1000  /*call SysTick every 1ms 1/1000Hz*/
+//RS485 definitions for buffer
 #define ARRAY_SIZE 8
 #define BUFFLEN 32
-
+//CCAN definitions
 #define CCAN_TX_MSG_ID (0x200)
 #define CCAN_RX_MSG_ID (0x100)
 #define CCAN_TX_MSG_REMOTE_ID (0x300)
@@ -181,6 +183,9 @@ void Init_Hardware(void) {
 }
 
 /*=======================[CAN0_IRQHandler]==================================*/
+/**
+ * CAN0_IRQHandler only for example
+ */
 void CAN0_IRQHandler(void)
 {
 	CCAN_MSG_OBJ_T msg_buf;
@@ -239,13 +244,12 @@ void UART0_IRQHandler(void) {
 
 /*=======================[SysTick_Handler]===================================*/
 /**
- * Only Toggle led CIAA_DO7 and send data in can
+ * Only Toggle led CIAA_DO7
  */
 static volatile uint32_t cnt = 0;
 void SysTick_Handler(void) {
-	if (cnt == 500) {
+	if (cnt == 1000) {
 		GPIOToggle(CIAA_DO7);
-		ccan_send();
 		cnt = 0;
 	}
 	cnt++;
@@ -256,7 +260,7 @@ int main(void) {
 	/* perform the needed initialization here */
 	SystemClockInit();
 	Init_Hardware();
-	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
+	SysTick_Config(SystemCoreClock / SYSTICK_CALL_FREC);/*call systick every 1ms*/
 	//Init data frame
 	appData_t appData = {0};
 	appData.header = 0xFFFFFFFF;
@@ -275,7 +279,8 @@ int main(void) {
 		float32_t angle = angle_getAngleRad();
 		memcpy(&appData.angle, &angle, sizeof(float32_t));
 		memcpy(&appData.fatigue, rxBuff, sizeof(float32_t));
-		//ccan_send();
+		ccan_send();
+		dacWrite((uint16_t)cnt);
 		Chip_UART_SendBlocking(USB_UART, &appData , sizeof(appData_t));
 	}
 
