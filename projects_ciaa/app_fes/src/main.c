@@ -239,7 +239,6 @@ void CAN0_IRQHandler(void)
 void UART0_IRQHandler(void) {
 	Chip_UART_RXIntHandlerRB(LPC_USART0, &rbRx); //pone los datos que se mandan por UART en el ring buffer
 	Chip_UART_ReadRB(LPC_USART0, &rbRx, rxBuff, sizeof(float32_t)); //count in bytes always
-	uart_flag = TRUE;
 }
 
 /*=======================[SysTick_Handler]===================================*/
@@ -251,6 +250,9 @@ void SysTick_Handler(void) {
 	if (cnt == 1000) {
 		GPIOToggle(CIAA_DO7);
 		cnt = 0;
+	}
+	if(cnt % 50 == 0){
+		uart_flag = TRUE;
 	}
 	cnt++;
 }
@@ -281,7 +283,10 @@ int main(void) {
 		memcpy(&appData.fatigue, rxBuff, sizeof(float32_t));
 		ccan_send();
 		dacWrite((uint16_t)cnt);
-		Chip_UART_SendBlocking(USB_UART, &appData , sizeof(appData_t));
+		if(uart_flag){
+			Chip_UART_SendBlocking(USB_UART, &appData , sizeof(appData_t));
+			uart_flag = FALSE;
+		}
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a

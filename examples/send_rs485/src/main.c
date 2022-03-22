@@ -103,6 +103,7 @@ int main(void) {
 	// ----- Repeat for ever -------------------------
 	while (TRUE) {
 		data_example += 1.0f;
+		if(data_example > 10.0f) data_example = 0.0f;
 //		memcpy(&arr2[0], &header, sizeof(uint32_t));
 //		memcpy(&arr2[4], &data_example, sizeof(float));
 //		SendStringRs485(arr2, PAYLOAD_SIZE);

@@ -89,11 +89,6 @@ void SysTick_Handler(void) {
 	if (cnt % 250 == 0) {
 		GPIOToggle(CIAA_DO7);
 	}
-
-	if (cnt % 1023 == 0) {
-		dacWrite(cnt);
-	}
-
 	cnt++;
 }
 
@@ -105,7 +100,14 @@ int main(void) {
 	Init_Hardware();
 	SysTick_Config(SystemCoreClock / SISTICK_CALL_FREC);/*call systick every 1ms*/
 	// ----- Repeat for ever -------------------------
+	uint16_t dac_value = 0;
 	for(;;) {
+		if (dac_value > 1023){
+			dac_value = 0;
+		}
+		dacWrite(dac_value);
+		dac_value++;
+		StopWatch_DelayMs(1);
 	}
 
 	// YOU NEVER REACH HERE, because this program runs directly or on a
